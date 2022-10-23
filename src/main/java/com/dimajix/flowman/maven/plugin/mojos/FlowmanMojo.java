@@ -16,11 +16,8 @@
 
 package com.dimajix.flowman.maven.plugin.mojos;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.stream.Stream;
-
+import com.dimajix.flowman.maven.plugin.model.*;
+import com.dimajix.flowman.maven.plugin.util.Collections;
 import lombok.Getter;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -32,13 +29,11 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectDependenciesResolver;
+import org.eclipse.aether.impl.ArtifactDescriptorReader;
 
-import com.dimajix.flowman.maven.plugin.model.BuildSettings;
-import com.dimajix.flowman.maven.plugin.model.Deployment;
-import com.dimajix.flowman.maven.plugin.model.Descriptor;
-import com.dimajix.flowman.maven.plugin.model.FlowmanSettings;
-import com.dimajix.flowman.maven.plugin.model.ObjectMapper;
-import com.dimajix.flowman.maven.plugin.util.Collections;
+import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
 
 abstract public class FlowmanMojo extends AbstractMojo {
     /**
@@ -76,6 +71,10 @@ abstract public class FlowmanMojo extends AbstractMojo {
     @Getter
     @Inject
     protected ProjectDependenciesResolver dependenciesResolver;
+
+    @Getter
+    @Inject
+    protected ArtifactDescriptorReader artifactDescriptorReader;
 
     /**
      * The output directory into which to copy the resources.
@@ -125,15 +124,5 @@ abstract public class FlowmanMojo extends AbstractMojo {
         result.setProperties(Collections.concat(descriptorSettings.getProperties(), deploymentSettings.getProperties()));
         result.setDependencies(Collections.concat(descriptorSettings.getDependencies(), deploymentSettings.getDependencies()));
         return result;
-    }
-
-    public MavenProject getMavenProject(Deployment deployment) {
-        // TODO:
-        //   1. Apply SCM Settings
-        //   2. Apply Maven properties
-        //val project = new MavenProject(mavenProject);
-        val project = mavenProject.clone();
-        //project.getModel().addProperty("project.build.directory", getBuildDirectory().toString());
-        return project;
     }
 }

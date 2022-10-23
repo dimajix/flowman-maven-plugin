@@ -18,18 +18,18 @@ package com.dimajix.flowman.maven.plugin.impl;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
+import com.dimajix.flowman.maven.plugin.tasks.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.val;
+import lombok.var;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import com.dimajix.flowman.maven.plugin.model.Deployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
-import com.dimajix.flowman.maven.plugin.tasks.BuildJar;
-import com.dimajix.flowman.maven.plugin.tasks.ProcessResources;
-import com.dimajix.flowman.maven.plugin.tasks.ShadeJar;
-import com.dimajix.flowman.maven.plugin.tasks.UnpackDist;
 import com.dimajix.flowman.maven.plugin.util.Collections;
 
 public class JarDeployment extends Deployment {
@@ -64,8 +64,16 @@ public class JarDeployment extends Deployment {
     }
 
     @Override
-    public void test(FlowmanMojo mojo) {
+    public void test(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
+        val workDirectory = mojo.getBuildDirectory(this);
+        val outputDirectory = new File(workDirectory, "resources");
 
+        // 3. Execute Tests
+        val run = new RunArtifacts(mojo, this, getFlowmanArtifacts(mojo), null, null);
+        for (var flow : mojo.getDescriptor().getFlows()) {
+            val projectDirectory = new File(outputDirectory, flow.getPath());
+            run.runTests(projectDirectory);
+        }
     }
 
     @Override
@@ -74,7 +82,22 @@ public class JarDeployment extends Deployment {
     }
 
     @Override
-    public void shell(FlowmanMojo mojo, File flow) {
+    public void shell(FlowmanMojo mojo, File flow) throws MojoExecutionException, MojoFailureException {
+        val workDirectory = mojo.getBuildDirectory(this);
+        val outputDirectory = new File(workDirectory, "resources");
+        val projectDirectory = new File(outputDirectory, flow.getPath());
 
+        val run = new RunArtifacts(mojo, this, getFlowmanArtifacts(mojo), null, null);
+        run.runShell(projectDirectory);
+    }
+
+    private List<Artifact> getFlowmanArtifacts(FlowmanMojo mojo) throws MojoFailureException {
+        val flowmanSettings = mojo.getFlowmanSettings(this);
+        val workDirectory = mojo.getBuildDirectory(this);
+
+        val projectArtifact = mojo.getMavenProject().getArtifact();
+        projectArtifact.setFile(new File(workDirectory, projectArtifact.getArtifactId() + "-" + projectArtifact.getVersion() + ".jar"));
+        val sparkDependencies = flowmanSettings.resolveSparkDependencies();
+        return Arrays.asList(projectArtifact, sparkDependencies);
     }
 }

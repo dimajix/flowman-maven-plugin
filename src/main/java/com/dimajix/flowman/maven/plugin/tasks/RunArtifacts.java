@@ -30,6 +30,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 import com.dimajix.flowman.maven.plugin.model.Deployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
+import org.apache.maven.project.MavenProject;
 
 
 public class RunArtifacts extends Task {
@@ -48,6 +49,8 @@ public class RunArtifacts extends Task {
         this.artifacts = artifacts;
         this.homeDirectory = homeDirectory;
         this.confDirectory = confDirectory;
+
+        mavenProject.setDependencies(toDependencies(artifacts));
     }
 
     public void runTests(File projectDirectory) throws MojoExecutionException {
@@ -59,47 +62,54 @@ public class RunArtifacts extends Task {
     }
 
     public void run(String mainClass, File projectDirectory, String... args) throws MojoExecutionException {
-        val depres = resolveDependencies(artifacts);
-        val classPath = new StringBuffer();
-        depres.getResolvedDependencies().stream().forEach(dep -> {
-            if (classPath.length() > 0)
-                classPath.append(File.pathSeparator);
-            classPath.append(dep.getArtifact().getFile());
-        });
+        val currentProject = mavenSession.getCurrentProject();
+        try {
+            mavenSession.setCurrentProject(mavenProject);
+            val depres = resolveDependencies(mavenProject);
+            val classPath = new StringBuffer();
+            depres.getResolvedDependencies().stream().forEach(dep -> {
+                if (classPath.length() > 0)
+                    classPath.append(File.pathSeparator);
+                classPath.append(dep.getArtifact().getFile());
+            });
 
-        val allArgs = new LinkedList<String>();
-        val args0 = Arrays.asList(
-            "-classpath",
-            classPath.toString(),
-            mainClass,
-            "-f", projectDirectory.toString());
-        allArgs.addAll(args0);
-        allArgs.addAll(Arrays.asList(args));
+            val allArgs = new LinkedList<String>();
+            val args0 = Arrays.asList(
+                "-classpath",
+                classPath.toString(),
+                mainClass,
+                "-f", projectDirectory.toString());
+            allArgs.addAll(args0);
+            allArgs.addAll(Arrays.asList(args));
 
-        executeMojo(
-            plugin(
-                groupId("org.codehaus.mojo"),
-                artifactId("exec-maven-plugin"),
-                version("3.1.0")
-            ),
-            goal("exec"),
-            configuration(
-                element(name("addOutputToClasspath"), "false"),
-                element(name("classpathScope"), "compile"),
-                element(name("environmentVariables"),
-                    element("FLOWMAN_HOME", homeDirectory != null ? homeDirectory.toString() : ""),
-                    element("FLOWMAN_CONF_DIR", confDirectory != null ? confDirectory.toString() : "")
+            executeMojo(
+                plugin(
+                    groupId("org.codehaus.mojo"),
+                    artifactId("exec-maven-plugin"),
+                    version("3.1.0")
                 ),
-                element(name("executable"), "java"),
-                element(name("arguments"),
-                    allArgs.stream().map(arg -> element(name("argument"), arg)).toArray(Element[]::new)
+                goal("exec"),
+                configuration(
+                    element(name("addOutputToClasspath"), "false"),
+                    element(name("classpathScope"), "compile"),
+                    element(name("environmentVariables"),
+                        element("FLOWMAN_HOME", homeDirectory != null ? homeDirectory.toString() : ""),
+                        element("FLOWMAN_CONF_DIR", confDirectory != null ? confDirectory.toString() : "")
+                    ),
+                    element(name("executable"), "java"),
+                    element(name("arguments"),
+                        allArgs.stream().map(arg -> element(name("argument"), arg)).toArray(Element[]::new)
+                    )
+                ),
+                executionEnvironment(
+                    mavenProject,
+                    mavenSession,
+                    pluginManager
                 )
-            ),
-            executionEnvironment(
-                mavenProject,
-                mavenSession,
-                pluginManager
-            )
-        );
+            );
+        }
+        finally {
+            mavenSession.setCurrentProject(currentProject);
+        }
     }
 }

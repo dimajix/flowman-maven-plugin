@@ -13,6 +13,10 @@ import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.Exclusion;
+import org.apache.maven.model.composition.DefaultDependencyManagementImporter;
+import org.apache.maven.model.composition.DependencyManagementImporter;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -28,6 +32,9 @@ import com.dimajix.flowman.maven.plugin.model.BuildSettings;
 import com.dimajix.flowman.maven.plugin.model.Deployment;
 import com.dimajix.flowman.maven.plugin.model.FlowmanSettings;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
+import org.eclipse.aether.resolution.ArtifactDescriptorException;
+import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
+import org.eclipse.aether.resolution.ArtifactDescriptorResult;
 
 
 public abstract class Task {
@@ -45,7 +52,6 @@ public abstract class Task {
 
     public Task(FlowmanMojo mojo, Deployment deployment) throws MojoFailureException {
         this.deployment = deployment;
-        this.mavenProject = mojo.getMavenProject(deployment);
         this.mavenSession = mojo.getMavenSession();
         this.pluginManager = mojo.getPluginManager();
         this.dependenciesResolver = mojo.getDependenciesResolver();
@@ -53,6 +59,50 @@ public abstract class Task {
         this.buildDirectory = mojo.getBuildDirectory(deployment);
         this.flowmanSettings = mojo.getFlowmanSettings(deployment);
         this.buildSettings = mojo.getBuildSettings(deployment);
+
+        mavenProject = new MavenProject(mojo.getMavenProject().getModel().clone());
+        mavenProject.setArtifact(mojo.getMavenProject().getArtifact());
+        mavenProject.setOriginalModel(mojo.getMavenProject().getOriginalModel());
+        mavenProject.setRemoteArtifactRepositories(mojo.getMavenProject().getRemoteArtifactRepositories());
+        mavenProject.setPluginArtifactRepositories(mojo.getMavenProject().getPluginArtifactRepositories());
+
+        val parent0 = flowmanSettings.resolveParent();
+        importDependencyManagement(mojo, parent0);
+    }
+
+    private void importDependencyManagement(FlowmanMojo mojo, Artifact pom) throws MojoFailureException {
+        val request = new ArtifactDescriptorRequest();
+        val parent = new org.eclipse.aether.artifact.DefaultArtifact(pom.getGroupId(), pom.getArtifactId(), pom.getType(), pom.getVersion());
+        request.setArtifact(parent);
+        ArtifactDescriptorResult result;
+        try {
+            result = mojo.getArtifactDescriptorReader().readArtifactDescriptor(mojo.getMavenSession().getRepositorySession(), request);
+            //System.out.println(result.getManagedDependencies());
+        } catch (ArtifactDescriptorException e) {
+            throw new MojoFailureException(e);
+        }
+
+        val depMgmt = new DependencyManagement();
+        result.getManagedDependencies().forEach(dep0 -> {
+            val dep = new Dependency();
+            val artifact = dep0.getArtifact();
+            dep.setGroupId(artifact.getGroupId());
+            dep.setArtifactId(artifact.getArtifactId());
+            dep.setClassifier(artifact.getClassifier());
+            dep.setScope(dep0.getScope());
+            if (dep0.getExclusions() != null) {
+                val exclusions = dep0.getExclusions().stream().map(ex0 -> {
+                    val ex = new Exclusion();
+                    ex.setGroupId(ex0.getGroupId());
+                    ex.setArtifactId(ex0.getArtifactId());
+                    return ex;
+                }).collect(Collectors.toList());
+                dep.setExclusions(exclusions);
+            }
+            depMgmt.addDependency(dep);
+        });
+        val merger = new DefaultDependencyManagementImporter();
+        merger.importManagement(mavenProject.getModel(), Collections.singletonList(depMgmt), null, null);
     }
 
     protected Dependency toDependency(Artifact artifact) {
@@ -72,13 +122,6 @@ public abstract class Task {
             .collect(Collectors.toList());
     }
 
-    protected DependencyResolutionResult resolveDependencies(List<Artifact> artifacts) throws MojoExecutionException {
-        val execProject = new MavenProject(mavenProject);
-        execProject.setArtifacts(null);
-        execProject.setDependencyArtifacts(null);
-        execProject.setDependencies(toDependencies(artifacts));
-        return resolveDependencies(execProject);
-    }
     protected DependencyResolutionResult resolveDependencies(MavenProject project) throws MojoExecutionException {
         RepositorySystemSession session = mavenSession.getRepositorySession();
         DependencyResolutionResult resolutionResult;

@@ -42,25 +42,19 @@ public class ShadeJar extends Task {
     }
 
     public void shadeJar(List<Artifact> artifacts, File outputDirectory) throws MojoExecutionException {
-        //mavenProject.setArtifacts(new HashSet<>(artifacts));
-        mavenProject.getModel().setDependencyManagement(new DependencyManagement());
-        //mavenProject.getDependencyManagement().addDependency(toDependency(flowmanSettings.resolveParent()));
-        mavenProject.setArtifacts(null);
-        mavenProject.setDependencyArtifacts(null);
-        mavenProject.setDependencies(toDependencies(artifacts));
-
-        resolveDependencies(mavenProject);
-
-        // Remove "provided" depdencies
-        val newDeps = mavenProject.getArtifacts().stream()
-            .filter(a -> !a.getScope().equals("provided"))
-            .collect(Collectors.toSet());
-        mavenProject.setArtifacts(newDeps);
-        mavenProject.getArtifacts().forEach(a -> System.out.println(a.getGroupId() + ":" + a.getArtifactId() + ":" + a.getScope()));
-
         val currentProject = mavenSession.getCurrentProject();
         try {
             mavenSession.setCurrentProject(mavenProject);
+
+            // Set and resolve dependencies
+            mavenProject.setDependencies(toDependencies(artifacts));
+            resolveDependencies(mavenProject);
+
+            // Remove "provided" depdencies
+            val newDeps = mavenProject.getArtifacts().stream()
+                .filter(a -> !a.getScope().equals("provided"))
+                .collect(Collectors.toSet());
+            mavenProject.setArtifacts(newDeps);
 
             executeMojo(
                 plugin(
@@ -84,6 +78,17 @@ public class ShadeJar extends Task {
                         ),
                         element(name("excludes"),
                             element(name("exclude"), "com.dimajix.flowman:flowman-spark-dependencies:*")
+                        )
+                    ),
+                    element(name("filters"),
+                        element(name("filter"),
+                            element(name("artifact"), "*:*"),
+                            element(name("excludes"),
+                                element(name("exclude"), "META-INF/MANIFEST.MF"),
+                                element(name("exclude"), "META-INF/*.SF"),
+                                element(name("exclude"), "META-INF/*.DAS"),
+                                element(name("exclude"), "META-INF/*.RSA")
+                            )
                         )
                     )
                 ),
