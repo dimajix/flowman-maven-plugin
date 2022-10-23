@@ -1,0 +1,11 @@
+flowman:
+  version: 0.28.0
+
+flows:
+  - aggregates
+  - moat
+
+deployments:
+  local:
+    # classifier: local-jar, local-flows, local
+    kind: local
