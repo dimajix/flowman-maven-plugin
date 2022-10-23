@@ -7,5 +7,4 @@ flows:
 
 deployments:
   local:
-    # classifier: local-jar, local-flows, local
-    kind: local
+    kind: jar
