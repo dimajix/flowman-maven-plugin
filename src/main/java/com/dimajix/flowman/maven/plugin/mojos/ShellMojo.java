@@ -36,7 +36,7 @@ public class ShellMojo extends FlowmanMojo {
         val deployment = descriptor.getDeployment(this.deployment);
         val flow = descriptor.getFlow(this.flow);
         getLog().info("");
-        getLog().info("-- Running shell for deployment: " + deployment.getName());
+        getLog().info("-- Running shell for deployment '" + deployment.getName() + "'");
 
         deployment.shell(this, flow);
     }

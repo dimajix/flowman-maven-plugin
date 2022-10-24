@@ -51,6 +51,11 @@ public abstract class Deployment {
     @JsonProperty(value="build", required = false)
     private BuildSettings buildSettings = new BuildSettings();
 
+    @Getter
+    @Setter
+    @JsonProperty(value="execute", required = false)
+    private ExecutionSettings executionSettings = new ExecutionSettings();
+
     abstract public void build(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException;
 
     abstract public void test(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException;

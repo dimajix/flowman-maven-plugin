@@ -18,6 +18,7 @@ package com.dimajix.flowman.maven.plugin.impl;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.dimajix.flowman.maven.plugin.tasks.*;
@@ -40,8 +41,6 @@ public class JarDeployment extends Deployment {
 
     @Override
     public void build(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
-        val flowmanSettings = mojo.getFlowmanSettings(this);
-        val buildSettings = mojo.getBuildSettings(this);
         val workDirectory = mojo.getBuildDirectory(this);
         val outputDirectory = new File(workDirectory, "resources");
 
@@ -49,6 +48,27 @@ public class JarDeployment extends Deployment {
         val resources = new ProcessResources(mojo, this);
         resources.processResources(mojo.getDescriptor().getFlows(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
+    }
+
+    @Override
+    public void test(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
+        val workDirectory = mojo.getBuildDirectory(this);
+        val outputDirectory = new File(workDirectory, "resources");
+
+        // Execute Tests
+        val run = new RunArtifacts(mojo, this, getFlowmanArtifacts(mojo), null, null);
+        for (var flow : mojo.getDescriptor().getFlows()) {
+            val projectDirectory = new File(outputDirectory, flow.getPath());
+            run.runTests(projectDirectory);
+        }
+    }
+
+    @Override
+    public void pack(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
+        val flowmanSettings = mojo.getFlowmanSettings(this);
+        val buildSettings = mojo.getBuildSettings(this);
+        val workDirectory = mojo.getBuildDirectory(this);
+        val outputDirectory = new File(workDirectory, "resources");
 
         // 2. Build Jar
         val jar = new BuildJar(mojo, this);
@@ -64,24 +84,6 @@ public class JarDeployment extends Deployment {
     }
 
     @Override
-    public void test(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
-        val workDirectory = mojo.getBuildDirectory(this);
-        val outputDirectory = new File(workDirectory, "resources");
-
-        // 3. Execute Tests
-        val run = new RunArtifacts(mojo, this, getFlowmanArtifacts(mojo), null, null);
-        for (var flow : mojo.getDescriptor().getFlows()) {
-            val projectDirectory = new File(outputDirectory, flow.getPath());
-            run.runTests(projectDirectory);
-        }
-    }
-
-    @Override
-    public void pack(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
-
-    }
-
-    @Override
     public void shell(FlowmanMojo mojo, File flow) throws MojoExecutionException, MojoFailureException {
         val workDirectory = mojo.getBuildDirectory(this);
         val outputDirectory = new File(workDirectory, "resources");
@@ -92,12 +94,12 @@ public class JarDeployment extends Deployment {
     }
 
     private List<Artifact> getFlowmanArtifacts(FlowmanMojo mojo) throws MojoFailureException {
+        val buildSettings = mojo.getBuildSettings(this);
         val flowmanSettings = mojo.getFlowmanSettings(this);
-        val workDirectory = mojo.getBuildDirectory(this);
 
-        val projectArtifact = mojo.getMavenProject().getArtifact();
-        projectArtifact.setFile(new File(workDirectory, projectArtifact.getArtifactId() + "-" + projectArtifact.getVersion() + ".jar"));
-        val sparkDependencies = flowmanSettings.resolveSparkDependencies();
-        return Arrays.asList(projectArtifact, sparkDependencies);
+        val flowmanTools = flowmanSettings.resolveTools();
+        val flowmanSpark = flowmanSettings.resolveSparkDependencies();
+        val dependencyArtifacts = buildSettings.resolveDependencies();
+        return Collections.concat(Arrays.asList(flowmanTools, flowmanSpark), dependencyArtifacts);
     }
 }

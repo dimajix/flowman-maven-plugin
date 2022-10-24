@@ -32,6 +32,7 @@ import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 public class BuildJar extends Task {
     public BuildJar(FlowmanMojo mojo, Deployment deployment) throws MojoFailureException {
         super(mojo, deployment);
+        mavenProject.getModel().setPackaging("jar");
     }
 
     public void buildJar(File sourceDirectory, File outputDirectory) throws MojoExecutionException {

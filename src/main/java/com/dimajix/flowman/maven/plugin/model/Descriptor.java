@@ -35,6 +35,9 @@ public class Descriptor {
     @JsonProperty(value="build", required = false)
     private BuildSettings buildSettings = new BuildSettings();
 
+    @JsonProperty(value="execute", required = false)
+    private ExecutionSettings executionSettings = new ExecutionSettings();
+
     @JsonProperty(value="scm", required = false)
     private ScmSettings scm = new ScmSettings();
 

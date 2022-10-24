@@ -34,16 +34,20 @@ public class TestMojo extends FlowmanMojo {
     protected String deployment;
     @Parameter( property="flowman.flow")
     protected String flow;
+    @Parameter( property="skipTests")
+    protected Boolean skipTests = false;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        val descriptor = getDescriptor();
-        val deployments = StringUtils.isEmpty(deployment) ? descriptor.getDeployments() : Collections.singletonList(descriptor.getDeployment(deployment));
+        if (!skipTests) {
+            val descriptor = getDescriptor();
+            val deployments = StringUtils.isEmpty(deployment) ? descriptor.getDeployments() : Collections.singletonList(descriptor.getDeployment(deployment));
 
-        for (var deployment : deployments) {
-            getLog().info("");
-            getLog().info("-- Testing deployment " + deployment.getName());
-            deployment.test(this);
+            for (var deployment : deployments) {
+                getLog().info("");
+                getLog().info("-- Testing deployment '" + deployment.getName() + "'");
+                deployment.test(this);
+            }
         }
     }
 }

@@ -112,7 +112,6 @@ abstract public class FlowmanMojo extends AbstractMojo {
         result.setPlugins(Collections.concat(descriptorSettings.getPlugins(), deploymentSettings.getPlugins()));
         result.setEnvironment(Collections.concat(descriptorSettings.getEnvironment(), deploymentSettings.getEnvironment()));
         result.setConfig(Collections.concat(descriptorSettings.getConfig(), deploymentSettings.getConfig()));
-        result.setProfiles(Collections.concat(descriptorSettings.getProfiles(), deploymentSettings.getProfiles()));
         return result;
     }
 
@@ -123,6 +122,17 @@ abstract public class FlowmanMojo extends AbstractMojo {
         val result = new BuildSettings();
         result.setProperties(Collections.concat(descriptorSettings.getProperties(), deploymentSettings.getProperties()));
         result.setDependencies(Collections.concat(descriptorSettings.getDependencies(), deploymentSettings.getDependencies()));
+        return result;
+    }
+
+    public ExecutionSettings getExecutionSettings(Deployment deployment) throws MojoFailureException {
+        val descriptorSettings = getDescriptor().getExecutionSettings();
+        val deploymentSettings = deployment.getExecutionSettings();
+
+        val result = new ExecutionSettings();
+        result.setEnvironment(Collections.concat(descriptorSettings.getEnvironment(), deploymentSettings.getEnvironment()));
+        result.setConfig(Collections.concat(descriptorSettings.getConfig(), deploymentSettings.getConfig()));
+        result.setProfiles(Collections.concat(descriptorSettings.getProfiles(), deploymentSettings.getProfiles()));
         return result;
     }
 }

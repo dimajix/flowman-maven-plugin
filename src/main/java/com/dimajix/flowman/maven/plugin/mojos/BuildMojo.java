@@ -40,7 +40,7 @@ public class BuildMojo extends FlowmanMojo {
 
         for (var deployment : deployments) {
             getLog().info("");
-            getLog().info("-- Building deployment " + deployment.getName());
+            getLog().info("-- Building deployment '" + deployment.getName() + "'");
             deployment.build(this);
         }
     }

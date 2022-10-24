@@ -40,7 +40,7 @@ public class PackageMojo extends FlowmanMojo {
 
         for (var deployment : deployments) {
             getLog().info("");
-            getLog().info("-- Packaging deployment " + deployment.getName());
+            getLog().info("-- Packaging deployment '" + deployment.getName() + "'");
             deployment.pack(this);
         }
     }

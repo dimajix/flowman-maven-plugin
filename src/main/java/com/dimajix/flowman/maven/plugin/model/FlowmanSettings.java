@@ -16,7 +16,6 @@
 
 package com.dimajix.flowman.maven.plugin.model;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +26,7 @@ import lombok.val;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
+
 
 @Data
 public class FlowmanSettings {
@@ -39,14 +39,12 @@ public class FlowmanSettings {
     @JsonProperty(value="plugins", required = false)
     private List<String> plugins = Collections.emptyList();
 
-    @JsonProperty(value="profiles", required = false)
-    private List<String> profiles = Collections.emptyList();
-
     @JsonProperty(value="environment", required = false)
     private List<String> environment = Collections.emptyList();
 
     @JsonProperty(value="config", required = false)
     private List<String> config = Collections.emptyList();
+
 
     public Artifact resolveDist() {
         return new DefaultArtifact(

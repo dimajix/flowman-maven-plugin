@@ -17,14 +17,11 @@
 package com.dimajix.flowman.maven.plugin.tasks;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.val;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
@@ -37,7 +34,6 @@ import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 public class ShadeJar extends Task {
     public ShadeJar(FlowmanMojo mojo, Deployment deployment) throws MojoFailureException {
         super(mojo, deployment);
-
         mavenProject.getModel().setPackaging("jar");
     }
 
