@@ -22,6 +22,7 @@ import java.util.Collection;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -30,8 +31,8 @@ import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 
 public class UnpackDist extends Task {
-    public UnpackDist(FlowmanMojo mojo, Deployment deployment) throws MojoFailureException {
-        super(mojo, deployment);
+    public UnpackDist(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, deployment, mavenProject);
     }
 
     public void unpack(Collection<Artifact> artifacts, File outputDirectory) throws MojoExecutionException {

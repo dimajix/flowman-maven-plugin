@@ -23,6 +23,7 @@ import lombok.val;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -31,35 +32,28 @@ import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 
 public class BuildJar extends Task {
-    public BuildJar(FlowmanMojo mojo, Deployment deployment) throws MojoFailureException {
-        super(mojo, deployment);
+    public BuildJar(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, deployment, mavenProject);
         mavenProject.getModel().setPackaging("jar");
     }
 
     public void buildJar(File sourceDirectory, File outputDirectory) throws MojoExecutionException {
-        val currentProject = mavenSession.getCurrentProject();
-        try {
-            mavenSession.setCurrentProject(mavenProject);
-            executeMojo(
-                plugin(
-                    groupId("org.apache.maven.plugins"),
-                    artifactId("maven-jar-plugin"),
-                    version("3.3.0")
-                ),
-                goal("jar"),
-                configuration(
-                    element(name("classesDirectory"), sourceDirectory.toString()),
-                    element(name("outputDirectory"), outputDirectory.toString())
-                ),
-                executionEnvironment(
-                    mavenProject,
-                    mavenSession,
-                    pluginManager
-                )
-            );
-        }
-        finally {
-            mavenSession.setCurrentProject(currentProject);
-        }
+        executeMojo(
+            plugin(
+                groupId("org.apache.maven.plugins"),
+                artifactId("maven-jar-plugin"),
+                version("3.3.0")
+            ),
+            goal("jar"),
+            configuration(
+                element(name("classesDirectory"), sourceDirectory.toString()),
+                element(name("outputDirectory"), outputDirectory.toString())
+            ),
+            executionEnvironment(
+                mavenProject,
+                mavenSession,
+                pluginManager
+            )
+        );
     }
 }

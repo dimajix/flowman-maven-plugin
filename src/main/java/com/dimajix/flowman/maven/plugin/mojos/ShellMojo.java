@@ -38,6 +38,14 @@ public class ShellMojo extends FlowmanMojo {
         getLog().info("");
         getLog().info("-- Running shell for deployment '" + deployment.getName() + "'");
 
-        deployment.shell(this, flow);
+        val project = createMavenProject(deployment, null);
+        val previousProject = mavenSession.getCurrentProject();
+        try {
+            mavenSession.setCurrentProject(project);
+            deployment.shell(this, flow);
+        }
+        finally {
+            mavenSession.setCurrentProject(previousProject);
+        }
     }
 }

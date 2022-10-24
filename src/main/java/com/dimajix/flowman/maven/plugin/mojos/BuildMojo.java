@@ -41,7 +41,16 @@ public class BuildMojo extends FlowmanMojo {
         for (var deployment : deployments) {
             getLog().info("");
             getLog().info("-- Building deployment '" + deployment.getName() + "'");
-            deployment.build(this);
+
+            val project = createMavenProject(deployment, null);
+            val previousProject = mavenSession.getCurrentProject();
+            try {
+                mavenSession.setCurrentProject(project);
+                deployment.build(this);
+            }
+            finally {
+                mavenSession.setCurrentProject(previousProject);
+            }
         }
     }
 }

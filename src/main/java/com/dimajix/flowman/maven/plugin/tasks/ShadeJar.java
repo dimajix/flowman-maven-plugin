@@ -24,6 +24,7 @@ import lombok.val;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -32,72 +33,63 @@ import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 
 public class ShadeJar extends Task {
-    public ShadeJar(FlowmanMojo mojo, Deployment deployment, Artifact artifact) throws MojoFailureException {
-        super(mojo, deployment, artifact);
+    public ShadeJar(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, deployment, mavenProject);
         mavenProject.getModel().setPackaging("jar");
     }
 
-    public void shadeJar(List<Artifact> artifacts, File outputDirectory) throws MojoExecutionException {
-        val currentProject = mavenSession.getCurrentProject();
-        try {
-            mavenSession.setCurrentProject(mavenProject);
+    public void shadeJar(File outputDirectory) throws MojoExecutionException {
+        // Set and resolve dependencies
+        resolveDependencies();
 
-            // Set and resolve dependencies
-            mavenProject.setDependencies(toDependencies(artifacts));
-            resolveDependencies(mavenProject);
+        // Remove "provided" depdencies
+        val newDeps = mavenProject.getArtifacts().stream()
+            .filter(a -> !a.getScope().equals("provided"))
+            .collect(Collectors.toSet());
+        mavenProject.setArtifacts(newDeps);
 
-            // Remove "provided" depdencies
-            val newDeps = mavenProject.getArtifacts().stream()
-                .filter(a -> !a.getScope().equals("provided"))
-                .collect(Collectors.toSet());
-            mavenProject.setArtifacts(newDeps);
-
-            executeMojo(
-                plugin(
-                    groupId("org.apache.maven.plugins"),
-                    artifactId("maven-shade-plugin"),
-                    version("3.4.0")
+        executeMojo(
+            plugin(
+                groupId("org.apache.maven.plugins"),
+                artifactId("maven-shade-plugin"),
+                version("3.4.0")
+            ),
+            goal("shade"),
+            configuration(
+                element(name("shadedClassifierName"), deployment.getName()),
+                element(name("outputDirectory"), outputDirectory.toString()),
+                element(name("createDependencyReducedPom"), "false"),
+                element(name("keepDependenciesWithProvidedScope"), "false"),
+                element(name("transformers"),
+                    element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer")),
+                    element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer")),
+                    element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"))
                 ),
-                goal("shade"),
-                configuration(
-                    element(name("shadedClassifierName"), deployment.getName()),
-                    element(name("outputDirectory"), outputDirectory.toString()),
-                    element(name("createDependencyReducedPom"), "false"),
-                    element(name("keepDependenciesWithProvidedScope"), "false"),
-                    element(name("transformers"),
-                        element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer")),
-                        element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer")),
-                        element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"))
+                element(name("artifactSet"),
+                    element(name("includes"),
+                        element(name("include"), "*:*")
                     ),
-                    element(name("artifactSet"),
-                        element(name("includes"),
-                            element(name("include"), "*:*")
-                        ),
-                        element(name("excludes"),
-                            element(name("exclude"), "com.dimajix.flowman:flowman-spark-dependencies:*")
-                        )
-                    ),
-                    element(name("filters"),
-                        element(name("filter"),
-                            element(name("artifact"), "*:*"),
-                            element(name("excludes"),
-                                element(name("exclude"), "META-INF/MANIFEST.MF"),
-                                element(name("exclude"), "META-INF/*.SF"),
-                                element(name("exclude"), "META-INF/*.DAS"),
-                                element(name("exclude"), "META-INF/*.RSA")
-                            )
-                        )
+                    element(name("excludes"),
+                        element(name("exclude"), "com.dimajix.flowman:flowman-spark-dependencies:*")
                     )
                 ),
-                executionEnvironment(
-                    mavenProject,
-                    mavenSession,
-                    pluginManager
+                element(name("filters"),
+                    element(name("filter"),
+                        element(name("artifact"), "*:*"),
+                        element(name("excludes"),
+                            element(name("exclude"), "META-INF/MANIFEST.MF"),
+                            element(name("exclude"), "META-INF/*.SF"),
+                            element(name("exclude"), "META-INF/*.DAS"),
+                            element(name("exclude"), "META-INF/*.RSA")
+                        )
+                    )
                 )
-            );
-        }
-        finally {
-            mavenSession.setCurrentProject(currentProject);
-        }
+            ),
+            executionEnvironment(
+                mavenProject,
+                mavenSession,
+                pluginManager
+            )
+        );
     }
 }

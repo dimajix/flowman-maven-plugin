@@ -41,7 +41,16 @@ public class PackageMojo extends FlowmanMojo {
         for (var deployment : deployments) {
             getLog().info("");
             getLog().info("-- Packaging deployment '" + deployment.getName() + "'");
-            deployment.pack(this);
+
+            val project = createMavenProject(deployment, null);
+            val previousProject = mavenSession.getCurrentProject();
+            try {
+                mavenSession.setCurrentProject(project);
+                deployment.pack(this);
+            }
+            finally {
+                mavenSession.setCurrentProject(previousProject);
+            }
         }
 
         // Attach root pom

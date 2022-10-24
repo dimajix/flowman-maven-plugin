@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.val;
 import lombok.var;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
@@ -33,7 +34,7 @@ import com.dimajix.flowman.maven.plugin.model.Deployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 import com.dimajix.flowman.maven.plugin.util.Collections;
 
-public class JarDeployment extends Deployment {
+public class JarDeployment extends AbstractDeployment {
     @JsonProperty(value="applicationPath", required = true)
     private String applicationPath;
     @JsonProperty(value="projectPath", required = false)
@@ -44,8 +45,10 @@ public class JarDeployment extends Deployment {
         val workDirectory = mojo.getBuildDirectory(this);
         val outputDirectory = new File(workDirectory, "resources");
 
+        val mavenProject = mojo.getCurrentProject();
+
         // 1. Process sources
-        val resources = new ProcessResources(mojo, this);
+        val resources = new ProcessResources(mojo, this, mavenProject);
         resources.processResources(mojo.getDescriptor().getFlows(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
     }
@@ -55,8 +58,10 @@ public class JarDeployment extends Deployment {
         val workDirectory = mojo.getBuildDirectory(this);
         val outputDirectory = new File(workDirectory, "resources");
 
+        val mavenProject = mojo.getCurrentProject();
+
         // Execute Tests
-        val run = new RunArtifacts(mojo, this, getFlowmanArtifacts(mojo), null, null);
+        val run = new RunArtifacts(mojo, this, mavenProject, null, null);
         for (var flow : mojo.getDescriptor().getFlows()) {
             val projectDirectory = new File(outputDirectory, flow.getPath());
             run.runTests(projectDirectory);
@@ -65,21 +70,21 @@ public class JarDeployment extends Deployment {
 
     @Override
     public void pack(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
-        val flowmanSettings = mojo.getFlowmanSettings(this);
-        val buildSettings = mojo.getBuildSettings(this);
         val workDirectory = mojo.getBuildDirectory(this);
         val outputDirectory = new File(workDirectory, "resources");
 
+        val mavenProject = mojo.getCurrentProject();
+
         // 2. Build Jar
-        val jar = new BuildJar(mojo, this);
+        val jar = new BuildJar(mojo, this, mavenProject);
         jar.buildJar(outputDirectory, workDirectory);
 
         // 3. Shade Jar
-        val flowmanArtifact = flowmanSettings.resolveTools();
-        val dependencyArtifacts = buildSettings.resolveDependencies();
-        val allArtifacts = Collections.concat(Arrays.asList(flowmanArtifact), dependencyArtifacts);
-        val shade = new ShadeJar(mojo, this, jar.getArtifact());
-        shade.shadeJar(allArtifacts, workDirectory);
+        val shade = new ShadeJar(mojo, this, mavenProject);
+        shade.shadeJar(workDirectory);
+
+        val artifactFile = mavenProject.getArtifact().getFile();
+        mojo.attachArtifact(artifactFile, "jar", getName());
     }
 
     @Override
@@ -88,17 +93,22 @@ public class JarDeployment extends Deployment {
         val outputDirectory = new File(workDirectory, "resources");
         val projectDirectory = new File(outputDirectory, flow.getPath());
 
-        val run = new RunArtifacts(mojo, this, getFlowmanArtifacts(mojo), null, null);
+        val mavenProject = mojo.getCurrentProject();
+
+        val run = new RunArtifacts(mojo, this, mavenProject, null, null);
         run.runShell(projectDirectory);
     }
 
-    private List<Artifact> getFlowmanArtifacts(FlowmanMojo mojo) throws MojoFailureException {
+    @Override
+    public List<Dependency> getDependencies(FlowmanMojo mojo) throws MojoFailureException {
         val buildSettings = mojo.getBuildSettings(this);
         val flowmanSettings = mojo.getFlowmanSettings(this);
 
         val flowmanTools = flowmanSettings.resolveTools();
         val flowmanSpark = flowmanSettings.resolveSparkDependencies();
         val dependencyArtifacts = buildSettings.resolveDependencies();
-        return Collections.concat(Arrays.asList(flowmanTools, flowmanSpark), dependencyArtifacts);
+        val allDeps = Collections.concat(Arrays.asList(flowmanTools, flowmanSpark), dependencyArtifacts);
+
+        return toDependencies(allDeps);
     }
 }

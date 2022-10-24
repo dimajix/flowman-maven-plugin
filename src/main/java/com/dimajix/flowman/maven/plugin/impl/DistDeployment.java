@@ -26,17 +26,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.val;
 import lombok.var;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
-import com.dimajix.flowman.maven.plugin.model.Deployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 import com.dimajix.flowman.maven.plugin.tasks.ProcessResources;
 import com.dimajix.flowman.maven.plugin.tasks.RunArtifacts;
 import com.dimajix.flowman.maven.plugin.tasks.UnpackDist;
 
 
-public class DistDeployment extends Deployment {
+public class DistDeployment extends AbstractDeployment {
     @JsonProperty(value="installPath", required = true)
     private String installPath;
 
@@ -45,14 +45,16 @@ public class DistDeployment extends Deployment {
         val workDirectory = mojo.getBuildDirectory(this);
         val outputDirectory = new File(workDirectory, "resources");
 
+        val mavenProject = mojo.getCurrentProject();
+
         // 1. Unpack Flowman
         val flowman = mojo.getFlowmanSettings(this);
         val dist = flowman.resolveDist();
-        val unpack = new UnpackDist(mojo, this);
+        val unpack = new UnpackDist(mojo, this, mavenProject);
         unpack.unpack(Collections.singletonList(dist), workDirectory);
 
         // 2. Process sources
-        val resources = new ProcessResources(mojo, this);
+        val resources = new ProcessResources(mojo, this, mavenProject);
         resources.processResources(mojo.getDescriptor().getFlows(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
     }
@@ -66,8 +68,10 @@ public class DistDeployment extends Deployment {
         val confDirectory = new File(outputDirectory, "conf");
         val homeDirectory = new File(workDirectory, "flowman-" + flowmanSettings.getVersion());
 
+        val mavenProject = mojo.getCurrentProject();
+
         // 3. Execute Tests
-        val run = new RunArtifacts(mojo, this, getFlowmanArtifacts(mojo), homeDirectory, confDirectory);
+        val run = new RunArtifacts(mojo, this, mavenProject, homeDirectory, confDirectory);
         for (var flow : mojo.getDescriptor().getFlows()) {
             val projectDirectory = new File(outputDirectory, flow.getPath());
             run.runTests(projectDirectory);
@@ -89,20 +93,19 @@ public class DistDeployment extends Deployment {
         val confDirectory = new File(outputDirectory, "conf");
         val homeDirectory = new File(workDirectory, "flowman-" + flowmanSettings.getVersion());
 
-        val run = new RunArtifacts(mojo, this, getFlowmanArtifacts(mojo), homeDirectory, confDirectory);
+        val mavenProject = mojo.getCurrentProject();
+
+        val run = new RunArtifacts(mojo, this, mavenProject, homeDirectory, confDirectory);
         run.runShell(projectDirectory);
     }
 
-    private List<Artifact> getFlowmanArtifacts(FlowmanMojo mojo) throws MojoFailureException {
+    @Override
+    public List<Dependency> getDependencies(FlowmanMojo mojo) throws MojoFailureException {
         val flowman = mojo.getFlowmanSettings(this);
         val flowmanTools = flowman.resolveTools();
         val flowmanSpark = flowman.resolveSparkDependencies();
-        val coreDeps = Arrays.asList(flowmanTools, flowmanSpark);
+        val allDeps = Arrays.asList(flowmanTools, flowmanSpark);
 
-        val allDeps = new LinkedList<Artifact>();
-        allDeps.addAll(coreDeps);
-        //allDeps.addAll(flowman.resolvePlugins());
-
-        return allDeps;
+        return toDependencies(allDeps);
     }
 }

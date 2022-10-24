@@ -17,13 +17,14 @@
 package com.dimajix.flowman.maven.plugin.tasks;
 
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 
 import com.dimajix.flowman.maven.plugin.model.Deployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 
 public class AssembleDist extends Task {
-    public AssembleDist(FlowmanMojo mojo, Deployment deployment) throws MojoFailureException {
-        super(mojo, deployment);
+    public AssembleDist(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, deployment, mavenProject);
     }
 }

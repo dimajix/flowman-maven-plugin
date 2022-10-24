@@ -17,12 +17,14 @@
 package com.dimajix.flowman.maven.plugin.model;
 
 import java.io.File;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
@@ -63,4 +65,6 @@ public abstract class Deployment {
     abstract public void shell(FlowmanMojo mojo, File flow) throws MojoFailureException, MojoExecutionException;
 
     abstract public void pack(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException;
+
+    abstract public List<Dependency> getDependencies(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException;
 }

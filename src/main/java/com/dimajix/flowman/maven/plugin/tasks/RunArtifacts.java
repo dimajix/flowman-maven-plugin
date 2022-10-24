@@ -34,23 +34,18 @@ import org.apache.maven.project.MavenProject;
 
 
 public class RunArtifacts extends Task {
-    private List<Artifact> artifacts;
     private File homeDirectory;
     private File confDirectory;
 
 
-    public RunArtifacts(FlowmanMojo mojo, Deployment deployment, List<Artifact> artifacts) throws MojoFailureException {
-        super(mojo, deployment);
-        this.artifacts = artifacts;
+    public RunArtifacts(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, deployment, mavenProject);
     }
 
-    public RunArtifacts(FlowmanMojo mojo, Deployment deployment, List<Artifact> artifacts, File homeDirectory, File confDirectory) throws MojoFailureException {
-        super(mojo, deployment);
-        this.artifacts = artifacts;
+    public RunArtifacts(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject, File homeDirectory, File confDirectory) throws MojoFailureException {
+        super(mojo, deployment, mavenProject);
         this.homeDirectory = homeDirectory;
         this.confDirectory = confDirectory;
-
-        mavenProject.setDependencies(toDependencies(artifacts));
     }
 
     public void runTests(File projectDirectory) throws MojoExecutionException {
@@ -62,54 +57,48 @@ public class RunArtifacts extends Task {
     }
 
     public void run(String mainClass, File projectDirectory, String... args) throws MojoExecutionException {
-        val currentProject = mavenSession.getCurrentProject();
-        try {
-            mavenSession.setCurrentProject(mavenProject);
-            val depres = resolveDependencies(mavenProject);
-            val classPath = new StringBuffer();
-            depres.getResolvedDependencies().stream().forEach(dep -> {
-                if (classPath.length() > 0)
-                    classPath.append(File.pathSeparator);
-                classPath.append(dep.getArtifact().getFile());
-            });
+        val depres = resolveDependencies();
+        val classPath = new StringBuffer();
+        depres.getResolvedDependencies().stream().forEach(dep -> {
+            if (classPath.length() > 0)
+                classPath.append(File.pathSeparator);
+            classPath.append(dep.getArtifact().getFile());
+        });
 
-            val allArgs = new LinkedList<String>();
-            val args0 = Arrays.asList(
-                "-classpath",
-                classPath.toString(),
-                mainClass,
-                "-f", projectDirectory.toString());
-            allArgs.addAll(args0);
-            allArgs.addAll(Arrays.asList(args));
+        val allArgs = new LinkedList<String>();
+        val args0 = Arrays.asList(
+            "-classpath",
+            classPath.toString(),
+            mainClass,
+            "-f", projectDirectory.toString());
+        allArgs.addAll(args0);
+        allArgs.addAll(Arrays.asList(args));
 
-            executeMojo(
-                plugin(
-                    groupId("org.codehaus.mojo"),
-                    artifactId("exec-maven-plugin"),
-                    version("3.1.0")
+        executeMojo(
+            plugin(
+                groupId("org.codehaus.mojo"),
+                artifactId("exec-maven-plugin"),
+                version("3.1.0")
+            ),
+            goal("exec"),
+            configuration(
+                element(name("addOutputToClasspath"), "false"),
+                element(name("classpathScope"), "compile"),
+                element(name("inheritIo"), "true"),
+                element(name("environmentVariables"),
+                    element("FLOWMAN_HOME", homeDirectory != null ? homeDirectory.toString() : ""),
+                    element("FLOWMAN_CONF_DIR", confDirectory != null ? confDirectory.toString() : "")
                 ),
-                goal("exec"),
-                configuration(
-                    element(name("addOutputToClasspath"), "false"),
-                    element(name("classpathScope"), "compile"),
-                    element(name("environmentVariables"),
-                        element("FLOWMAN_HOME", homeDirectory != null ? homeDirectory.toString() : ""),
-                        element("FLOWMAN_CONF_DIR", confDirectory != null ? confDirectory.toString() : "")
-                    ),
-                    element(name("executable"), "java"),
-                    element(name("arguments"),
-                        allArgs.stream().map(arg -> element(name("argument"), arg)).toArray(Element[]::new)
-                    )
-                ),
-                executionEnvironment(
-                    mavenProject,
-                    mavenSession,
-                    pluginManager
+                element(name("executable"), "java"),
+                element(name("arguments"),
+                    allArgs.stream().map(arg -> element(name("argument"), arg)).toArray(Element[]::new)
                 )
-            );
-        }
-        finally {
-            mavenSession.setCurrentProject(currentProject);
-        }
+            ),
+            executionEnvironment(
+                mavenProject,
+                mavenSession,
+                pluginManager
+            )
+        );
     }
 }
