@@ -46,7 +46,7 @@ public class PackageMojo extends FlowmanMojo {
             val previousProject = mavenSession.getCurrentProject();
             try {
                 mavenSession.setCurrentProject(project);
-                deployment.pack(this);
+                deployment.pack();
             }
             finally {
                 mavenSession.setCurrentProject(previousProject);

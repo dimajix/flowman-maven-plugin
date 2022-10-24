@@ -42,7 +42,7 @@ public class ShellMojo extends FlowmanMojo {
         val previousProject = mavenSession.getCurrentProject();
         try {
             mavenSession.setCurrentProject(project);
-            deployment.shell(this, flow);
+            deployment.shell(flow);
         }
         finally {
             mavenSession.setCurrentProject(previousProject);

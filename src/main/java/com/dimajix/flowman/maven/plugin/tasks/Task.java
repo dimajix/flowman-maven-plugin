@@ -44,9 +44,9 @@ public abstract class Task {
         this.pluginManager = mojo.getPluginManager();
         this.dependenciesResolver = mojo.getDependenciesResolver();
 
-        this.buildDirectory = mojo.getBuildDirectory(deployment);
-        this.flowmanSettings = mojo.getFlowmanSettings(deployment);
-        this.buildSettings = mojo.getBuildSettings(deployment);
+        this.buildDirectory = deployment.getBuildDirectory();
+        this.flowmanSettings = deployment.getEffectiveFlowmanSettings();
+        this.buildSettings = deployment.getEffectiveBuildSettings();
         this.mavenProject = mavenProject;
     }
 

@@ -20,6 +20,7 @@ import com.dimajix.flowman.maven.plugin.model.*;
 import com.dimajix.flowman.maven.plugin.util.Collections;
 import lombok.Getter;
 import lombok.val;
+import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -102,7 +103,7 @@ abstract public class FlowmanMojo extends AbstractMojo {
     @Parameter( defaultValue = "${project.build.directory}", property="flowman.buildDirectory")
     protected File buildDirectory;
     @Parameter( defaultValue = "${project.directory}/deployment.yml", property="flowman.deploymentDescriptor")
-    private File deploymentDescriptor;
+    protected File deploymentDescriptor;
 
     private Descriptor cachedDescriptor = null;
 
@@ -110,6 +111,9 @@ abstract public class FlowmanMojo extends AbstractMojo {
         if (cachedDescriptor == null) {
             try {
                 cachedDescriptor = ObjectMapper.read(deploymentDescriptor, Descriptor.class);
+                for (var deployment : cachedDescriptor.getDeployments()) {
+                    deployment.init(this);
+                }
             }
             catch(IOException ex) {
                 throw new MojoFailureException(ex);
@@ -121,45 +125,6 @@ abstract public class FlowmanMojo extends AbstractMojo {
     public MavenProject getCurrentProject() {
         return mavenSession.getCurrentProject();
     }
-
-    public File getBuildDirectory(Deployment deployment) {
-        return new File(this.buildDirectory, deployment.getName());
-    }
-
-    public FlowmanSettings getFlowmanSettings(Deployment deployment) throws MojoFailureException {
-        val descriptorSettings = getDescriptor().getFlowmanSettings();
-        val deploymentSettings = deployment.getFlowmanSettings();
-
-        val result = new FlowmanSettings();
-        result.setVersion(StringUtils.isNotEmpty(deploymentSettings.getVersion()) ? deploymentSettings.getVersion() : descriptorSettings.getVersion());
-        result.setPlugins(Collections.concat(descriptorSettings.getPlugins(), deploymentSettings.getPlugins()));
-        result.setEnvironment(Collections.concat(descriptorSettings.getEnvironment(), deploymentSettings.getEnvironment()));
-        result.setConfig(Collections.concat(descriptorSettings.getConfig(), deploymentSettings.getConfig()));
-        return result;
-    }
-
-    public BuildSettings getBuildSettings(Deployment deployment) throws MojoFailureException {
-        val descriptorSettings = getDescriptor().getBuildSettings();
-        val deploymentSettings = deployment.getBuildSettings();
-
-        val result = new BuildSettings();
-        result.setProperties(Collections.concat(descriptorSettings.getProperties(), deploymentSettings.getProperties()));
-        result.setDependencies(Collections.concat(descriptorSettings.getDependencies(), deploymentSettings.getDependencies()));
-        result.setExclusions(Collections.concat(descriptorSettings.getExclusions(), deploymentSettings.getExclusions()));
-        return result;
-    }
-
-    public ExecutionSettings getExecutionSettings(Deployment deployment) throws MojoFailureException {
-        val descriptorSettings = getDescriptor().getExecutionSettings();
-        val deploymentSettings = deployment.getExecutionSettings();
-
-        val result = new ExecutionSettings();
-        result.setEnvironment(Collections.concat(descriptorSettings.getEnvironment(), deploymentSettings.getEnvironment()));
-        result.setConfig(Collections.concat(descriptorSettings.getConfig(), deploymentSettings.getConfig()));
-        result.setProfiles(Collections.concat(descriptorSettings.getProfiles(), deploymentSettings.getProfiles()));
-        return result;
-    }
-
 
     protected MavenProject createMavenProject(Deployment deployment, Artifact outputArtifact) throws MojoFailureException, MojoExecutionException {
         val mojoProject = getMavenProject();
@@ -173,11 +138,11 @@ abstract public class FlowmanMojo extends AbstractMojo {
         mavenProject.setRemoteArtifactRepositories(mojoProject.getRemoteArtifactRepositories());
         mavenProject.setPluginArtifactRepositories(mojoProject.getPluginArtifactRepositories());
 
-        val flowmanSettings = getFlowmanSettings(deployment);
+        val flowmanSettings = deployment.getEffectiveFlowmanSettings();
         val parent0 = flowmanSettings.resolveParent();
         importDependencyManagement(mavenProject, parent0);
 
-        val dependencies = deployment.getDependencies(this);
+        val dependencies = deployment.getDependencies();
         mavenProject.setDependencies(dependencies);
 
         return mavenProject;

@@ -17,21 +17,28 @@
 package com.dimajix.flowman.maven.plugin.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.dimajix.flowman.maven.plugin.tasks.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.val;
 import lombok.var;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
-import com.dimajix.flowman.maven.plugin.model.Deployment;
-import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 import com.dimajix.flowman.maven.plugin.util.Collections;
 
 public class JarDeployment extends AbstractDeployment {
@@ -41,9 +48,8 @@ public class JarDeployment extends AbstractDeployment {
     private String projectPath;
 
     @Override
-    public void build(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
-        val workDirectory = mojo.getBuildDirectory(this);
-        val outputDirectory = new File(workDirectory, "resources");
+    public void build() throws MojoFailureException, MojoExecutionException {
+        val outputDirectory = new File(this.outputDirectory, "META-INF/flowman");
 
         val mavenProject = mojo.getCurrentProject();
 
@@ -51,17 +57,37 @@ public class JarDeployment extends AbstractDeployment {
         val resources = new ProcessResources(mojo, this, mavenProject);
         resources.processResources(mojo.getDescriptor().getFlows(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
+
+        // Remove any plugins from default-namespace.yml
+        val ns = new File(outputDirectory, "conf/default-namespace.yml");
+        if (ns.exists() && ns.isFile()) {
+            val mapper = new ObjectMapper(new YAMLFactory());
+            try {
+                JsonNode tree;
+                try (val reader = new FileInputStream(ns)) {
+                    tree = mapper.reader().readTree(reader);
+                }
+                if (tree.isObject() && tree.findValue("plugins") != null) {
+                    val objectTree = (ObjectNode)tree;
+                    objectTree.without("plugins");
+                    mapper.writer().writeValue(ns, objectTree);
+                }
+            }
+            catch(IOException ex) {
+                throw new MojoFailureException(ex);
+            }
+        }
     }
 
     @Override
-    public void test(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
-        val workDirectory = mojo.getBuildDirectory(this);
-        val outputDirectory = new File(workDirectory, "resources");
+    public void test() throws MojoFailureException, MojoExecutionException {
+        val outputDirectory = new File(this.outputDirectory, "META-INF/flowman");
+        val confDirectory = new File(outputDirectory, "conf");
 
         val mavenProject = mojo.getCurrentProject();
 
         // Execute Tests
-        val run = new RunArtifacts(mojo, this, mavenProject, null, null);
+        val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
         for (var flow : mojo.getDescriptor().getFlows()) {
             val projectDirectory = new File(outputDirectory, flow.getPath());
             run.runTests(projectDirectory);
@@ -69,40 +95,37 @@ public class JarDeployment extends AbstractDeployment {
     }
 
     @Override
-    public void pack(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException {
-        val workDirectory = mojo.getBuildDirectory(this);
-        val outputDirectory = new File(workDirectory, "resources");
-
+    public void pack() throws MojoFailureException, MojoExecutionException {
         val mavenProject = mojo.getCurrentProject();
 
         // 2. Build Jar
         val jar = new BuildJar(mojo, this, mavenProject);
-        jar.buildJar(outputDirectory, workDirectory);
+        jar.buildJar(outputDirectory, buildDirectory);
 
         // 3. Shade Jar
         val shade = new ShadeJar(mojo, this, mavenProject);
-        shade.shadeJar(workDirectory);
+        shade.shadeJar(buildDirectory);
 
         val artifactFile = mavenProject.getArtifact().getFile();
         mojo.attachArtifact(artifactFile, "jar", getName());
     }
 
     @Override
-    public void shell(FlowmanMojo mojo, File flow) throws MojoExecutionException, MojoFailureException {
-        val workDirectory = mojo.getBuildDirectory(this);
-        val outputDirectory = new File(workDirectory, "resources");
+    public void shell(File flow) throws MojoExecutionException, MojoFailureException {
+        val outputDirectory = new File(this.outputDirectory, "META-INF/flowman");
         val projectDirectory = new File(outputDirectory, flow.getPath());
+        val confDirectory = new File(outputDirectory, "conf");
 
         val mavenProject = mojo.getCurrentProject();
 
-        val run = new RunArtifacts(mojo, this, mavenProject, null, null);
+        val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
         run.runShell(projectDirectory);
     }
 
     @Override
-    public List<Dependency> getDependencies(FlowmanMojo mojo) throws MojoFailureException {
-        val buildSettings = mojo.getBuildSettings(this);
-        val flowmanSettings = mojo.getFlowmanSettings(this);
+    public List<Dependency> getDependencies() throws MojoFailureException {
+        val flowmanSettings = getEffectiveFlowmanSettings();
+        val buildSettings = getEffectiveBuildSettings();
 
         val flowmanTools = flowmanSettings.resolveTools();
         val flowmanSpark = flowmanSettings.resolveSparkDependencies();

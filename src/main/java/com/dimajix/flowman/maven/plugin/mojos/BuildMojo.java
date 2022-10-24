@@ -46,7 +46,7 @@ public class BuildMojo extends FlowmanMojo {
             val previousProject = mavenSession.getCurrentProject();
             try {
                 mavenSession.setCurrentProject(project);
-                deployment.build(this);
+                deployment.build();
             }
             finally {
                 mavenSession.setCurrentProject(previousProject);

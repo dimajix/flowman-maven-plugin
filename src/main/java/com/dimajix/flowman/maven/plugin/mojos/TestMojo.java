@@ -51,7 +51,7 @@ public class TestMojo extends FlowmanMojo {
                 val previousProject = mavenSession.getCurrentProject();
                 try {
                     mavenSession.setCurrentProject(project);
-                    deployment.test(this);
+                    deployment.test();
                 }
                 finally {
                     mavenSession.setCurrentProject(previousProject);

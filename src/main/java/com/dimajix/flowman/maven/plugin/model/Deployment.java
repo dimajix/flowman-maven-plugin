@@ -24,6 +24,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -31,6 +33,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import com.dimajix.flowman.maven.plugin.impl.DistDeployment;
 import com.dimajix.flowman.maven.plugin.impl.JarDeployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
+import com.dimajix.flowman.maven.plugin.util.Collections;
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "kind", visible = false)
@@ -46,25 +49,34 @@ public abstract class Deployment {
     @Getter
     @Setter
     @JsonProperty(value="flowman", required = false)
-    private FlowmanSettings flowmanSettings = new FlowmanSettings();
+    protected FlowmanSettings flowmanSettings = new FlowmanSettings();
 
     @Getter
     @Setter
     @JsonProperty(value="build", required = false)
-    private BuildSettings buildSettings = new BuildSettings();
+    protected BuildSettings buildSettings = new BuildSettings();
 
     @Getter
     @Setter
     @JsonProperty(value="execute", required = false)
-    private ExecutionSettings executionSettings = new ExecutionSettings();
+    protected ExecutionSettings executionSettings = new ExecutionSettings();
 
-    abstract public void build(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException;
+    abstract public FlowmanSettings getEffectiveFlowmanSettings() throws MojoFailureException;
 
-    abstract public void test(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException;
+    abstract public BuildSettings getEffectiveBuildSettings() throws MojoFailureException;
+    abstract public ExecutionSettings getEfffextiveExecutionSettings(Deployment deployment) throws MojoFailureException;
+    abstract public File getBuildDirectory();
 
-    abstract public void shell(FlowmanMojo mojo, File flow) throws MojoFailureException, MojoExecutionException;
 
-    abstract public void pack(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException;
+    abstract public void init(FlowmanMojo mojo) throws MojoFailureException;
 
-    abstract public List<Dependency> getDependencies(FlowmanMojo mojo) throws MojoFailureException, MojoExecutionException;
+    abstract public void build() throws MojoFailureException, MojoExecutionException;
+
+    abstract public void test() throws MojoFailureException, MojoExecutionException;
+
+    abstract public void shell(File flow) throws MojoFailureException, MojoExecutionException;
+
+    abstract public void pack() throws MojoFailureException, MojoExecutionException;
+
+    abstract public List<Dependency> getDependencies() throws MojoFailureException, MojoExecutionException;
 }
