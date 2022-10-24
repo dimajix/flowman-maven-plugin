@@ -75,11 +75,10 @@ public class JarDeployment extends Deployment {
         jar.buildJar(outputDirectory, workDirectory);
 
         // 3. Shade Jar
-        val projectArtifact = mojo.getMavenProject().getArtifact();
         val flowmanArtifact = flowmanSettings.resolveTools();
         val dependencyArtifacts = buildSettings.resolveDependencies();
-        val allArtifacts = Collections.concat(Arrays.asList(projectArtifact, flowmanArtifact), dependencyArtifacts);
-        val shade = new ShadeJar(mojo, this);
+        val allArtifacts = Collections.concat(Arrays.asList(flowmanArtifact), dependencyArtifacts);
+        val shade = new ShadeJar(mojo, this, jar.getArtifact());
         shade.shadeJar(allArtifacts, workDirectory);
     }
 

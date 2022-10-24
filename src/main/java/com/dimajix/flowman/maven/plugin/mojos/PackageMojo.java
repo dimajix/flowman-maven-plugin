@@ -43,5 +43,8 @@ public class PackageMojo extends FlowmanMojo {
             getLog().info("-- Packaging deployment '" + deployment.getName() + "'");
             deployment.pack(this);
         }
+
+        // Attach root pom
+        mavenProject.getArtifact().setFile(mavenProject.getFile());
     }
 }

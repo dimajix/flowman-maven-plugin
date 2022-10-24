@@ -32,8 +32,8 @@ import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 
 public class ShadeJar extends Task {
-    public ShadeJar(FlowmanMojo mojo, Deployment deployment) throws MojoFailureException {
-        super(mojo, deployment);
+    public ShadeJar(FlowmanMojo mojo, Deployment deployment, Artifact artifact) throws MojoFailureException {
+        super(mojo, deployment, artifact);
         mavenProject.getModel().setPackaging("jar");
     }
 
@@ -62,6 +62,7 @@ public class ShadeJar extends Task {
                 configuration(
                     element(name("shadedClassifierName"), deployment.getName()),
                     element(name("outputDirectory"), outputDirectory.toString()),
+                    element(name("createDependencyReducedPom"), "false"),
                     element(name("keepDependenciesWithProvidedScope"), "false"),
                     element(name("transformers"),
                         element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer")),

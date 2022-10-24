@@ -21,6 +21,7 @@ import com.dimajix.flowman.maven.plugin.util.Collections;
 import lombok.Getter;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -29,6 +30,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectDependenciesResolver;
+import org.apache.maven.project.artifact.AttachedArtifact;
 import org.eclipse.aether.impl.ArtifactDescriptorReader;
 
 import javax.inject.Inject;
@@ -122,6 +124,7 @@ abstract public class FlowmanMojo extends AbstractMojo {
         val result = new BuildSettings();
         result.setProperties(Collections.concat(descriptorSettings.getProperties(), deploymentSettings.getProperties()));
         result.setDependencies(Collections.concat(descriptorSettings.getDependencies(), deploymentSettings.getDependencies()));
+        result.setExclusions(Collections.concat(descriptorSettings.getExclusions(), deploymentSettings.getExclusions()));
         return result;
     }
 
@@ -134,5 +137,19 @@ abstract public class FlowmanMojo extends AbstractMojo {
         result.setConfig(Collections.concat(descriptorSettings.getConfig(), deploymentSettings.getConfig()));
         result.setProfiles(Collections.concat(descriptorSettings.getProfiles(), deploymentSettings.getProfiles()));
         return result;
+    }
+
+    protected MavenProject createMavenProject(Deployment deployment, Artifact outputArtifact) throws MojoFailureException {
+        val mojoProject = getMavenProject();
+        val mojoArtifact = mojoProject.getArtifact();
+        val artifact = outputArtifact != null ? outputArtifact : new AttachedArtifact(mojoArtifact, "jar", deployment.getName(), mojoArtifact.getArtifactHandler());
+        val mavenProject = new MavenProject(mojoProject.getModel().clone());
+        mavenProject.setOriginalModel(mojoProject.getModel());
+        mavenProject.setBuild(mojoProject.getBuild().clone());
+        mavenProject.setFile(mojoProject.getFile());
+        mavenProject.setArtifact(artifact);
+        mavenProject.setRemoteArtifactRepositories(mojoProject.getRemoteArtifactRepositories());
+        mavenProject.setPluginArtifactRepositories(mojoProject.getPluginArtifactRepositories());
+        return mavenProject;
     }
 }

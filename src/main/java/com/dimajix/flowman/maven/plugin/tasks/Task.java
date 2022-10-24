@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import lombok.val;
 import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
@@ -25,6 +27,7 @@ import org.apache.maven.project.DependencyResolutionException;
 import org.apache.maven.project.DependencyResolutionResult;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectDependenciesResolver;
+import org.apache.maven.project.artifact.AttachedArtifact;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.LocalRepositoryManager;
 
@@ -51,6 +54,10 @@ public abstract class Task {
 
 
     public Task(FlowmanMojo mojo, Deployment deployment) throws MojoFailureException {
+        this(mojo, deployment, null);
+    }
+
+    public Task(FlowmanMojo mojo, Deployment deployment, Artifact outputArtifact) throws MojoFailureException {
         this.deployment = deployment;
         this.mavenSession = mojo.getMavenSession();
         this.pluginManager = mojo.getPluginManager();
@@ -60,14 +67,23 @@ public abstract class Task {
         this.flowmanSettings = mojo.getFlowmanSettings(deployment);
         this.buildSettings = mojo.getBuildSettings(deployment);
 
-        mavenProject = new MavenProject(mojo.getMavenProject().getModel().clone());
-        mavenProject.setArtifact(mojo.getMavenProject().getArtifact());
-        mavenProject.setOriginalModel(mojo.getMavenProject().getOriginalModel());
-        mavenProject.setRemoteArtifactRepositories(mojo.getMavenProject().getRemoteArtifactRepositories());
-        mavenProject.setPluginArtifactRepositories(mojo.getMavenProject().getPluginArtifactRepositories());
+        val mojoProject = mojo.getMavenProject();
+        val mojoArtifact = mojoProject.getArtifact();
+        val artifact = outputArtifact != null ? outputArtifact : new AttachedArtifact(mojoArtifact, "jar", deployment.getName(), mojoArtifact.getArtifactHandler());
+        mavenProject = new MavenProject(mojoProject.getModel().clone());
+        mavenProject.setOriginalModel(mojoProject.getModel());
+        mavenProject.setBuild(mojoProject.getBuild().clone());
+        mavenProject.setFile(mojoProject.getFile());
+        mavenProject.setArtifact(artifact);
+        mavenProject.setRemoteArtifactRepositories(mojoProject.getRemoteArtifactRepositories());
+        mavenProject.setPluginArtifactRepositories(mojoProject.getPluginArtifactRepositories());
 
         val parent0 = flowmanSettings.resolveParent();
         importDependencyManagement(mojo, parent0);
+    }
+
+    public Artifact getArtifact() {
+        return mavenProject.getArtifact();
     }
 
     private void importDependencyManagement(FlowmanMojo mojo, Artifact pom) throws MojoFailureException {
@@ -77,7 +93,6 @@ public abstract class Task {
         ArtifactDescriptorResult result;
         try {
             result = mojo.getArtifactDescriptorReader().readArtifactDescriptor(mojo.getMavenSession().getRepositorySession(), request);
-            //System.out.println(result.getManagedDependencies());
         } catch (ArtifactDescriptorException e) {
             throw new MojoFailureException(e);
         }

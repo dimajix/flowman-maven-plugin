@@ -38,9 +38,6 @@ public class Descriptor {
     @JsonProperty(value="execute", required = false)
     private ExecutionSettings executionSettings = new ExecutionSettings();
 
-    @JsonProperty(value="scm", required = false)
-    private ScmSettings scm = new ScmSettings();
-
     @JsonProperty(value="flows", required = true)
     private List<File> flows = Collections.emptyList();
 

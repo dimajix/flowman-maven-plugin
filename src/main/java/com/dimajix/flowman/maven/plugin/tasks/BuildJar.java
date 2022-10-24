@@ -19,6 +19,7 @@ package com.dimajix.flowman.maven.plugin.tasks;
 import java.io.File;
 import java.util.List;
 
+import lombok.val;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -36,22 +37,29 @@ public class BuildJar extends Task {
     }
 
     public void buildJar(File sourceDirectory, File outputDirectory) throws MojoExecutionException {
-        executeMojo(
-            plugin(
-                groupId("org.apache.maven.plugins"),
-                artifactId("maven-jar-plugin"),
-                version("3.3.0")
-            ),
-            goal("jar"),
-            configuration(
-                element(name("classesDirectory"), sourceDirectory.toString()),
-                element(name("outputDirectory"), outputDirectory.toString())
-            ),
-            executionEnvironment(
-                mavenProject,
-                mavenSession,
-                pluginManager
-            )
-        );
+        val currentProject = mavenSession.getCurrentProject();
+        try {
+            mavenSession.setCurrentProject(mavenProject);
+            executeMojo(
+                plugin(
+                    groupId("org.apache.maven.plugins"),
+                    artifactId("maven-jar-plugin"),
+                    version("3.3.0")
+                ),
+                goal("jar"),
+                configuration(
+                    element(name("classesDirectory"), sourceDirectory.toString()),
+                    element(name("outputDirectory"), outputDirectory.toString())
+                ),
+                executionEnvironment(
+                    mavenProject,
+                    mavenSession,
+                    pluginManager
+                )
+            );
+        }
+        finally {
+            mavenSession.setCurrentProject(currentProject);
+        }
     }
 }

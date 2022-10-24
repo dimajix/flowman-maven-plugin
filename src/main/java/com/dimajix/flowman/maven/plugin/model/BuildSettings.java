@@ -32,9 +32,14 @@ import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 @Data
 public class BuildSettings {
     @JsonProperty(value="properties", required = false)
-    List<String> properties = Collections.emptyList();
+    private List<String> properties = Collections.emptyList();
+
     @JsonProperty(value="dependencies", required = false)
-    List<String> dependencies = Collections.emptyList();
+    private List<String> dependencies = Collections.emptyList();
+
+    @JsonProperty(value="exclusions", required = false)
+    private List<String> exclusions = Collections.emptyList();
+
 
     public Map<String,String> getPropertiesMap() {
         return properties.stream().map(p -> StringUtils.split(p, "=", 2))
