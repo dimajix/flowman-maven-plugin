@@ -49,21 +49,22 @@ public class DistDeployment extends AbstractDeployment {
 
         // 2. Process sources
         val resources = new ProcessResources(mojo, this, mavenProject);
-        resources.processResources(mojo.getDescriptor().getFlows(), outputDirectory);
+        resources.processResources(mojo.getDescriptor().getProjects(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
     }
 
     @Override
-    public void test() throws MojoFailureException, MojoExecutionException {
+    public void test(File project) throws MojoFailureException, MojoExecutionException {
         val flowmanSettings = getEffectiveFlowmanSettings();
         val confDirectory = new File(outputDirectory, "conf");
         val homeDirectory = new File(buildDirectory, "flowman-" + flowmanSettings.getVersion());
+        val projectDirectories = project != null ? java.util.Collections.singletonList(project) : mojo.getDescriptor().getProjects();
 
         val mavenProject = mojo.getCurrentProject();
 
         // 3. Execute Tests
         val run = new RunArtifacts(mojo, this, mavenProject, homeDirectory, confDirectory);
-        for (var flow : mojo.getDescriptor().getFlows()) {
+        for (var flow : projectDirectories) {
             val projectDirectory = new File(outputDirectory, flow.getPath());
             run.runTests(projectDirectory);
         }

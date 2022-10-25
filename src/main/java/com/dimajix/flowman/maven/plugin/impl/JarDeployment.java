@@ -18,12 +18,7 @@ package com.dimajix.flowman.maven.plugin.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,7 +50,7 @@ public class JarDeployment extends AbstractDeployment {
 
         // 1. Process sources
         val resources = new ProcessResources(mojo, this, mavenProject);
-        resources.processResources(mojo.getDescriptor().getFlows(), outputDirectory);
+        resources.processResources(mojo.getDescriptor().getProjects(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
 
         // Remove any plugins from default-namespace.yml
@@ -80,15 +75,16 @@ public class JarDeployment extends AbstractDeployment {
     }
 
     @Override
-    public void test() throws MojoFailureException, MojoExecutionException {
+    public void test(File project) throws MojoFailureException, MojoExecutionException {
         val outputDirectory = new File(this.outputDirectory, "META-INF/flowman");
         val confDirectory = new File(outputDirectory, "conf");
+        val projectDirectories = project != null ? java.util.Collections.singletonList(project) : mojo.getDescriptor().getProjects();
 
         val mavenProject = mojo.getCurrentProject();
 
         // Execute Tests
         val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
-        for (var flow : mojo.getDescriptor().getFlows()) {
+        for (var flow : projectDirectories) {
             val projectDirectory = new File(outputDirectory, flow.getPath());
             run.runTests(projectDirectory);
         }
@@ -104,10 +100,15 @@ public class JarDeployment extends AbstractDeployment {
 
         // 3. Shade Jar
         val shade = new ShadeJar(mojo, this, mavenProject);
-        shade.shadeJar(buildDirectory);
+        shade.shadeJar("com.dimajix.flowman.tools.exec.Driver");
 
         val artifactFile = mavenProject.getArtifact().getFile();
         mojo.attachArtifact(artifactFile, "jar", getName());
+
+        val log = mojo.getLog();
+        log.info("");
+        log.info(" > Run 'flowexec' via 'spark-submit " + artifactFile.getName() + " -f <project-directory> <flowman-command>'");
+        log.info(" > Run 'flowshell' via 'spark-submit --class com.dimajix.flowman.tools.shell.Shell " + artifactFile.getName() + " -f <project-directory>'");
     }
 
     @Override

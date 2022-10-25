@@ -25,7 +25,9 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
+import lombok.val;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 
 @Data
 public class Descriptor {
@@ -38,8 +40,8 @@ public class Descriptor {
     @JsonProperty(value="execute", required = false)
     private ExecutionSettings executionSettings = new ExecutionSettings();
 
-    @JsonProperty(value="flows", required = true)
-    private List<File> flows = Collections.emptyList();
+    @JsonProperty(value="projects", required = true)
+    private List<File> projects = Collections.emptyList();
 
     @JsonDeserialize(converter= DeploymentNameResolver.class)
     @JsonProperty(value="deployments", required = true)
@@ -49,21 +51,29 @@ public class Descriptor {
         return deployments.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList());
     }
 
-    public Deployment getDeployment(String name) {
+    public Deployment getDeployment(String name) throws MojoExecutionException {
         if (StringUtils.isEmpty(name)) {
             return deployments.entrySet().iterator().next().getValue();
         }
         else {
-            return deployments.get(name);
+            val result =  deployments.get(name);
+            if (result == null) {
+                throw new MojoExecutionException("Flowman deployment '" + name + "' found. Please check your 'deployment.yml'.");
+            }
+            return result;
         }
     }
 
-    public File getFlow(String name) {
+    public File getProject(String name) throws MojoExecutionException {
         if (StringUtils.isEmpty(name)) {
-            return getFlows().iterator().next();
+            return getProjects().iterator().next();
         }
         else {
-            return getFlows().stream().filter(f -> f.getName().equalsIgnoreCase(name)).findFirst().get();
+            val result = getProjects().stream().filter(f -> f.getName().equalsIgnoreCase(name)).findFirst();
+            if (result.isPresent())
+                return result.get();
+            else
+                throw new MojoExecutionException("Flowman project '" + name + "' not found. Please check your 'deployment.yml'.");
         }
     }
 }

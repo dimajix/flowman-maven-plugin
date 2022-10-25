@@ -27,14 +27,14 @@ import org.apache.maven.plugins.annotations.Parameter;
 public class ShellMojo extends FlowmanMojo {
     @Parameter(property="flowman.deployment")
     protected String deployment;
-    @Parameter(property="flowman.flow")
-    protected String flow;
+    @Parameter(property="flowman.project")
+    protected String project;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         val descriptor = getDescriptor();
         val deployment = descriptor.getDeployment(this.deployment);
-        val flow = descriptor.getFlow(this.flow);
+        val flow = descriptor.getProject(this.project);
         getLog().info("");
         getLog().info("-- Running shell for deployment '" + deployment.getName() + "'");
 

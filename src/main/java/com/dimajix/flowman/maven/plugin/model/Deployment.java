@@ -72,7 +72,7 @@ public abstract class Deployment {
 
     abstract public void build() throws MojoFailureException, MojoExecutionException;
 
-    abstract public void test() throws MojoFailureException, MojoExecutionException;
+    abstract public void test(File project) throws MojoFailureException, MojoExecutionException;
 
     abstract public void shell(File flow) throws MojoFailureException, MojoExecutionException;
 

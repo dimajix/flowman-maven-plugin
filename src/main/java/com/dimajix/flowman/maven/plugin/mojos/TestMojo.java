@@ -32,8 +32,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 public class TestMojo extends FlowmanMojo {
     @Parameter( property="flowman.deployment")
     protected String deployment;
-    @Parameter( property="flowman.flow")
-    protected String flow;
+    @Parameter( property="flowman.project")
+    protected String project;
     @Parameter( property="skipTests")
     protected Boolean skipTests = false;
 
@@ -47,11 +47,12 @@ public class TestMojo extends FlowmanMojo {
                 getLog().info("");
                 getLog().info("-- Testing deployment '" + deployment.getName() + "'");
 
-                val project = createMavenProject(deployment, null);
+                val mavenProject = createMavenProject(deployment, null);
                 val previousProject = mavenSession.getCurrentProject();
                 try {
-                    mavenSession.setCurrentProject(project);
-                    deployment.test();
+                    mavenSession.setCurrentProject(mavenProject);
+                    val flow = project != null ? descriptor.getProject(this.project) : null;
+                    deployment.test(flow);
                 }
                 finally {
                     mavenSession.setCurrentProject(previousProject);

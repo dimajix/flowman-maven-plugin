@@ -17,11 +17,9 @@
 package com.dimajix.flowman.maven.plugin.tasks;
 
 import java.io.File;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.val;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
@@ -38,7 +36,7 @@ public class ShadeJar extends Task {
         mavenProject.getModel().setPackaging("jar");
     }
 
-    public void shadeJar(File outputDirectory) throws MojoExecutionException {
+    public void shadeJar(String mainClass) throws MojoExecutionException {
         // Set and resolve dependencies
         resolveDependencies();
 
@@ -57,13 +55,18 @@ public class ShadeJar extends Task {
             goal("shade"),
             configuration(
                 element(name("shadedClassifierName"), deployment.getName()),
-                element(name("outputDirectory"), outputDirectory.toString()),
+                element(name("outputDirectory"), deployment.getBuildDirectory().toString()),
                 element(name("createDependencyReducedPom"), "false"),
                 element(name("keepDependenciesWithProvidedScope"), "false"),
                 element(name("transformers"),
                     element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer")),
                     element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer")),
-                    element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"))
+                    element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ServicesResourceTransformer")),
+                    element(name("transformer"), attribute("implementation", "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"),
+                        element(name("manifestEntries"),
+                            element(name("Main-Class"), mainClass)
+                        )
+                    )
                 ),
                 element(name("artifactSet"),
                     element(name("includes"),
