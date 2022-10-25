@@ -37,7 +37,7 @@ public class Descriptor {
     @JsonProperty(value="build", required = false)
     private BuildSettings buildSettings = new BuildSettings();
 
-    @JsonProperty(value="execute", required = false)
+    @JsonProperty(value="execution", required = false)
     private ExecutionSettings executionSettings = new ExecutionSettings();
 
     @JsonProperty(value="projects", required = true)
@@ -46,6 +46,7 @@ public class Descriptor {
     @JsonDeserialize(converter= DeploymentNameResolver.class)
     @JsonProperty(value="deployments", required = true)
     private Map<String,Deployment> deployments = Collections.emptyMap();
+
 
     public List<Deployment> getDeployments() {
         return deployments.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList());

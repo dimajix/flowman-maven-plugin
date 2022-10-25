@@ -17,6 +17,7 @@
 package com.dimajix.flowman.maven.plugin.tasks;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.stream.Collectors;
 
 import lombok.val;
@@ -28,6 +29,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 import com.dimajix.flowman.maven.plugin.model.Deployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
+import com.dimajix.flowman.maven.plugin.util.Collections;
 
 
 public class ShadeJar extends Task {
@@ -36,7 +38,7 @@ public class ShadeJar extends Task {
         mavenProject.getModel().setPackaging("jar");
     }
 
-    public void shadeJar(String mainClass) throws MojoExecutionException {
+    public void shadeJar(String mainClass) throws MojoExecutionException, MojoFailureException {
         // Set and resolve dependencies
         resolveDependencies();
 
@@ -45,6 +47,9 @@ public class ShadeJar extends Task {
             .filter(a -> !a.getScope().equals("provided"))
             .collect(Collectors.toSet());
         mavenProject.setArtifacts(newDeps);
+
+        val exclusions = new LinkedList<>(deployment.getEffectiveBuildSettings().getExclusions());
+        exclusions.add("com.dimajix.flowman:flowman-spark-dependencies:*");
 
         executeMojo(
             plugin(
@@ -73,7 +78,9 @@ public class ShadeJar extends Task {
                         element(name("include"), "*:*")
                     ),
                     element(name("excludes"),
-                        element(name("exclude"), "com.dimajix.flowman:flowman-spark-dependencies:*")
+                        exclusions.stream()
+                            .map(ex -> element(name("exclude"), ex))
+                            .toArray(Element[]::new)
                     )
                 ),
                 element(name("filters"),

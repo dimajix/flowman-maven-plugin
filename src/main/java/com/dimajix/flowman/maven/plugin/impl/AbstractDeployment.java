@@ -76,7 +76,7 @@ abstract public class AbstractDeployment extends Deployment {
         return result;
     }
     @Override
-    public ExecutionSettings getEfffextiveExecutionSettings(Deployment deployment) throws MojoFailureException {
+    public ExecutionSettings getEffectiveExecutionSettings(Deployment deployment) throws MojoFailureException {
         val descriptorSettings = mojo.getDescriptor().getExecutionSettings();
 
         val result = new ExecutionSettings();

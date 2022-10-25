@@ -24,8 +24,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.val;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -33,7 +31,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import com.dimajix.flowman.maven.plugin.impl.DistDeployment;
 import com.dimajix.flowman.maven.plugin.impl.JarDeployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
-import com.dimajix.flowman.maven.plugin.util.Collections;
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "kind", visible = false)
@@ -58,13 +55,13 @@ public abstract class Deployment {
 
     @Getter
     @Setter
-    @JsonProperty(value="execute", required = false)
+    @JsonProperty(value="execution", required = false)
     protected ExecutionSettings executionSettings = new ExecutionSettings();
 
     abstract public FlowmanSettings getEffectiveFlowmanSettings() throws MojoFailureException;
 
     abstract public BuildSettings getEffectiveBuildSettings() throws MojoFailureException;
-    abstract public ExecutionSettings getEfffextiveExecutionSettings(Deployment deployment) throws MojoFailureException;
+    abstract public ExecutionSettings getEffectiveExecutionSettings(Deployment deployment) throws MojoFailureException;
     abstract public File getBuildDirectory();
 
 
