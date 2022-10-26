@@ -65,7 +65,7 @@ public abstract class Deployment {
     abstract public File getBuildDirectory();
 
 
-    abstract public void init(FlowmanMojo mojo) throws MojoFailureException;
+    abstract public void init(FlowmanMojo mojo);
 
     abstract public void build() throws MojoFailureException, MojoExecutionException;
 

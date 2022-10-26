@@ -33,4 +33,13 @@ public class ExecutionSettings {
 
     @JsonProperty(value="config", required = false)
     private List<String> config = Collections.emptyList();
+
+    @JsonProperty(value="systemEnvironment", required = false)
+    private List<String> systemEnvironment = Collections.emptyList();
+
+    @JsonProperty(value="javaOptions", required = false)
+    private List<String> javaOptions = Collections.emptyList();
+
+    @JsonProperty(value="flowmanOptions", required = false)
+    private List<String> flowmanOptions = Collections.emptyList();
 }

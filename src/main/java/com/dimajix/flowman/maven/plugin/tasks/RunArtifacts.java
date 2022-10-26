@@ -18,19 +18,20 @@ package com.dimajix.flowman.maven.plugin.tasks;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.val;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 import com.dimajix.flowman.maven.plugin.model.Deployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
-import org.apache.maven.project.MavenProject;
+import com.dimajix.flowman.maven.plugin.util.Collections;
 
 
 public class RunArtifacts extends Task {
@@ -57,6 +58,9 @@ public class RunArtifacts extends Task {
     }
 
     public void run(String mainClass, File projectDirectory, String... args) throws MojoExecutionException {
+        val executionSettings = deployment.getExecutionSettings();
+
+        // Construct classpath
         val depres = resolveDependencies();
         val classPath = new StringBuffer();
         depres.getResolvedDependencies().stream().forEach(dep -> {
@@ -65,14 +69,35 @@ public class RunArtifacts extends Task {
             classPath.append(dep.getArtifact().getFile());
         });
 
+        // Collect arguments
         val allArgs = new LinkedList<String>();
         val args0 = Arrays.asList(
-            "-classpath",
-            classPath.toString(),
-            mainClass,
-            "-f", projectDirectory.toString());
+                "-classpath",
+                classPath.toString(),
+                mainClass,
+                "-f", projectDirectory.toString()
+            );
+        allArgs.addAll(executionSettings.getJavaOptions());
         allArgs.addAll(args0);
+        allArgs.addAll(executionSettings.getFlowmanOptions());
+        executionSettings.getProfiles().forEach(p -> {
+            allArgs.add("-P");
+            allArgs.add(p);
+        });
+        executionSettings.getEnvironment().forEach(e -> {
+            allArgs.add("-D");
+            allArgs.add(e);
+        });
+        executionSettings.getConfig().forEach(c -> {
+            allArgs.add("--conf");
+            allArgs.add(c);
+        });
         allArgs.addAll(Arrays.asList(args));
+
+        val systemEnvironment = new HashMap<String,String>();
+        systemEnvironment.put("FLOWMAN_HOME", homeDirectory != null ? homeDirectory.toString() : "");
+        systemEnvironment.put("FLOWMAN_CONF_DIR", confDirectory != null ? confDirectory.toString() : "");
+        systemEnvironment.putAll(Collections.splitSettings(executionSettings.getSystemEnvironment()));
 
         executeMojo(
             plugin(
@@ -86,8 +111,7 @@ public class RunArtifacts extends Task {
                 element(name("classpathScope"), "compile"),
                 element(name("inheritIo"), "true"),
                 element(name("environmentVariables"),
-                    element("FLOWMAN_HOME", homeDirectory != null ? homeDirectory.toString() : ""),
-                    element("FLOWMAN_CONF_DIR", confDirectory != null ? confDirectory.toString() : "")
+                    systemEnvironment.entrySet().stream().map(arg -> element(name(arg.getKey()), arg.getValue())).toArray(Element[]::new)
                 ),
                 element(name("executable"), "java"),
                 element(name("arguments"),

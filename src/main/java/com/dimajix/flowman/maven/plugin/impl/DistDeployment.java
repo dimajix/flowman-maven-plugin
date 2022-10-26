@@ -40,7 +40,7 @@ public class DistDeployment extends AbstractDeployment {
     @Override
     public void build() throws MojoFailureException, MojoExecutionException {
         val flowmanSettings = getEffectiveFlowmanSettings();
-        val mavenProject = mojo.getCurrentProject();
+        val mavenProject = mojo.getCurrentMavenProject();
 
         // 1. Unpack Flowman
         val dist = flowmanSettings.resolveDist();
@@ -61,7 +61,7 @@ public class DistDeployment extends AbstractDeployment {
         val homeDirectory = new File(buildDirectory, "flowman-" + flowmanSettings.getVersion());
         val projectDirectories = project != null ? java.util.Collections.singletonList(project) : mojo.getDescriptor().getProjects();
 
-        val mavenProject = mojo.getCurrentProject();
+        val mavenProject = mojo.getCurrentMavenProject();
 
         // 3. Execute Tests
         val run = new RunArtifacts(mojo, this, mavenProject, homeDirectory, confDirectory);
@@ -84,7 +84,7 @@ public class DistDeployment extends AbstractDeployment {
         // TODO: This assumes a certain directory structure in the tar.gz
         val homeDirectory = new File(buildDirectory, "flowman-" + flowmanSettings.getVersion());
 
-        val mavenProject = mojo.getCurrentProject();
+        val mavenProject = mojo.getCurrentMavenProject();
 
         val run = new RunArtifacts(mojo, this, mavenProject, homeDirectory, confDirectory);
         run.runShell(projectDirectory);

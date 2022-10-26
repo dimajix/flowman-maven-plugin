@@ -32,9 +32,8 @@ public class ShellMojo extends FlowmanMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        val descriptor = getDescriptor();
-        val deployment = descriptor.getDeployment(this.deployment);
-        val flow = descriptor.getProject(this.project);
+        val deployment = getDeployment(this.deployment);
+        val flow = getFlowmanProject(this.project);
         getLog().info("");
         getLog().info("-- Running shell for deployment '" + deployment.getName() + "'");
 

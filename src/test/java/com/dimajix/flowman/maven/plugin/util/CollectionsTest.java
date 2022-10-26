@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package com.dimajix.flowman.maven.plugin.model;
+package com.dimajix.flowman.maven.plugin.util;
 
-import com.google.common.io.Resources;
+import java.util.Arrays;
+import java.util.HashMap;
+
 import lombok.val;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class DescriptorTest {
+public class CollectionsTest {
     @Test
-    public void testDeserialization() throws IOException {
-        val url = Resources.getResource(DescriptorTest.class, "descriptor-1.yml");
-        val dep = ObjectMapper.read(url, Descriptor.class);
-
-        assertThat(dep.getFlowmanSettings().getVersion()).isEqualTo("0.28.0");
+    public void testSplitSettings() {
+        val expected = new HashMap<String,String>();
+        expected.put("a", "b");
+        assertThat(Collections.splitSettings(Arrays.asList("a=b"))).isEqualTo(expected);
     }
 }

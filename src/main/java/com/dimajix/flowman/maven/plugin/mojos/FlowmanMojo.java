@@ -17,7 +17,7 @@
 package com.dimajix.flowman.maven.plugin.mojos;
 
 import com.dimajix.flowman.maven.plugin.model.*;
-import com.dimajix.flowman.maven.plugin.util.Collections;
+
 import lombok.Getter;
 import lombok.val;
 import lombok.var;
@@ -46,9 +46,7 @@ import org.eclipse.aether.resolution.ArtifactDescriptorResult;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 abstract public class FlowmanMojo extends AbstractMojo {
@@ -122,8 +120,40 @@ abstract public class FlowmanMojo extends AbstractMojo {
         return cachedDescriptor;
     }
 
-    public MavenProject getCurrentProject() {
+    public MavenProject getCurrentMavenProject() {
         return mavenSession.getCurrentProject();
+    }
+
+    public List<Deployment> getDeployments() throws MojoFailureException {
+        return getDescriptor().getDeployments();
+    }
+
+    public Deployment getDeployment(String name) throws MojoExecutionException, MojoFailureException {
+        val deployments = getDescriptor().getDeployments();
+        if (StringUtils.isEmpty(name)) {
+            return deployments.iterator().next();
+        }
+        else {
+            val result =  deployments.stream().filter(d -> d.getName().equals(name)).findFirst();
+            if (!result.isPresent()) {
+                throw new MojoExecutionException("Flowman deployment '" + name + "' found. Please check your 'deployment.yml'.");
+            }
+            return result.get();
+        }
+    }
+
+    public File getFlowmanProject(String name) throws MojoExecutionException, MojoFailureException {
+        val projects = getDescriptor().getProjects();
+        if (StringUtils.isEmpty(name)) {
+            return projects.iterator().next();
+        }
+        else {
+            val result = projects.stream().filter(f -> f.getName().equalsIgnoreCase(name)).findFirst();
+            if (result.isPresent())
+                return result.get();
+            else
+                throw new MojoExecutionException("Flowman project '" + name + "' not found. Please check your 'deployment.yml'.");
+        }
     }
 
     protected MavenProject createMavenProject(Deployment deployment, Artifact outputArtifact) throws MojoFailureException, MojoExecutionException {

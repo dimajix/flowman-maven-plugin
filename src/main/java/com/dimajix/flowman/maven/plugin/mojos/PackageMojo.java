@@ -35,8 +35,7 @@ public class PackageMojo extends FlowmanMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        val descriptor = getDescriptor();
-        val deployments = StringUtils.isEmpty(deployment) ? descriptor.getDeployments() : Collections.singletonList(descriptor.getDeployment(deployment));
+        val deployments = StringUtils.isEmpty(deployment) ? getDeployments() : Collections.singletonList(getDeployment(deployment));
 
         for (var deployment : deployments) {
             getLog().info("");

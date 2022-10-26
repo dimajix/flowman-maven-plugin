@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 
 import com.dimajix.flowman.maven.plugin.model.BuildSettings;
 import com.dimajix.flowman.maven.plugin.model.Deployment;
@@ -40,6 +41,8 @@ import com.dimajix.flowman.maven.plugin.util.Collections;
 abstract public class AbstractDeployment extends Deployment {
     @JsonIgnore
     protected FlowmanMojo mojo;
+    @JsonIgnore
+    protected Log log;
     @Getter
     @JsonIgnore
     protected File buildDirectory;
@@ -49,8 +52,9 @@ abstract public class AbstractDeployment extends Deployment {
 
 
     @Override
-    public void init(FlowmanMojo mojo) throws MojoFailureException {
+    public void init(FlowmanMojo mojo) {
         this.mojo = mojo;
+        this.log = mojo.getLog();
         buildDirectory =  new File(mojo.getBuildDirectory(), getName());
         outputDirectory = new File(buildDirectory, "resources");
     }
@@ -68,7 +72,6 @@ abstract public class AbstractDeployment extends Deployment {
     @Override
     public BuildSettings getEffectiveBuildSettings() throws MojoFailureException {
         val descriptorSettings = mojo.getDescriptor().getBuildSettings();
-
         val result = new BuildSettings();
         result.setProperties(Collections.concat(descriptorSettings.getProperties(), buildSettings.getProperties()));
         result.setDependencies(Collections.concat(descriptorSettings.getDependencies(), buildSettings.getDependencies()));
@@ -78,11 +81,13 @@ abstract public class AbstractDeployment extends Deployment {
     @Override
     public ExecutionSettings getEffectiveExecutionSettings(Deployment deployment) throws MojoFailureException {
         val descriptorSettings = mojo.getDescriptor().getExecutionSettings();
-
         val result = new ExecutionSettings();
         result.setEnvironment(Collections.concat(descriptorSettings.getEnvironment(), executionSettings.getEnvironment()));
         result.setConfig(Collections.concat(descriptorSettings.getConfig(), executionSettings.getConfig()));
         result.setProfiles(Collections.concat(descriptorSettings.getProfiles(), executionSettings.getProfiles()));
+        result.setSystemEnvironment(Collections.concat(descriptorSettings.getSystemEnvironment(), executionSettings.getSystemEnvironment()));
+        result.setJavaOptions(Collections.concat(descriptorSettings.getJavaOptions(), executionSettings.getJavaOptions()));
+        result.setFlowmanOptions(Collections.concat(descriptorSettings.getFlowmanOptions(), executionSettings.getFlowmanOptions()));
         return result;
     }
 

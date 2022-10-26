@@ -51,30 +51,4 @@ public class Descriptor {
     public List<Deployment> getDeployments() {
         return deployments.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList());
     }
-
-    public Deployment getDeployment(String name) throws MojoExecutionException {
-        if (StringUtils.isEmpty(name)) {
-            return deployments.entrySet().iterator().next().getValue();
-        }
-        else {
-            val result =  deployments.get(name);
-            if (result == null) {
-                throw new MojoExecutionException("Flowman deployment '" + name + "' found. Please check your 'deployment.yml'.");
-            }
-            return result;
-        }
-    }
-
-    public File getProject(String name) throws MojoExecutionException {
-        if (StringUtils.isEmpty(name)) {
-            return getProjects().iterator().next();
-        }
-        else {
-            val result = getProjects().stream().filter(f -> f.getName().equalsIgnoreCase(name)).findFirst();
-            if (result.isPresent())
-                return result.get();
-            else
-                throw new MojoExecutionException("Flowman project '" + name + "' not found. Please check your 'deployment.yml'.");
-        }
-    }
 }

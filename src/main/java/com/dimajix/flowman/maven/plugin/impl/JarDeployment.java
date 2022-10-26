@@ -46,7 +46,7 @@ public class JarDeployment extends AbstractDeployment {
     public void build() throws MojoFailureException, MojoExecutionException {
         val outputDirectory = new File(this.outputDirectory, "META-INF/flowman");
 
-        val mavenProject = mojo.getCurrentProject();
+        val mavenProject = mojo.getCurrentMavenProject();
 
         // 1. Process sources
         val resources = new ProcessResources(mojo, this, mavenProject);
@@ -80,7 +80,7 @@ public class JarDeployment extends AbstractDeployment {
         val confDirectory = new File(outputDirectory, "conf");
         val projectDirectories = project != null ? java.util.Collections.singletonList(project) : mojo.getDescriptor().getProjects();
 
-        val mavenProject = mojo.getCurrentProject();
+        val mavenProject = mojo.getCurrentMavenProject();
 
         // Execute Tests
         val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
@@ -92,7 +92,7 @@ public class JarDeployment extends AbstractDeployment {
 
     @Override
     public void pack() throws MojoFailureException, MojoExecutionException {
-        val mavenProject = mojo.getCurrentProject();
+        val mavenProject = mojo.getCurrentMavenProject();
 
         // 2. Build Jar
         val jar = new BuildJar(mojo, this, mavenProject);
@@ -117,7 +117,7 @@ public class JarDeployment extends AbstractDeployment {
         val projectDirectory = new File(outputDirectory, flow.getPath());
         val confDirectory = new File(outputDirectory, "conf");
 
-        val mavenProject = mojo.getCurrentProject();
+        val mavenProject = mojo.getCurrentMavenProject();
 
         val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
         run.runShell(projectDirectory);
