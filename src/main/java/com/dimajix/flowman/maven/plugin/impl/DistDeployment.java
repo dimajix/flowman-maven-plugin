@@ -59,8 +59,8 @@ public class DistDeployment extends AbstractDeployment {
     public void build() throws MojoFailureException, MojoExecutionException {
         val flowmanSettings = getEffectiveFlowmanSettings();
         val mavenProject = mojo.getCurrentMavenProject();
-        val buildDirectory = new File(mavenProject.getBuild().getDirectory());
-        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory());
+        val buildDirectory = getBuildDirectory();
+        val outputDirectory = getOutputDirectory();
 
         // 1. Unpack Flowman
         val dist = flowmanSettings.resolveDist();
@@ -117,8 +117,8 @@ public class DistDeployment extends AbstractDeployment {
     public void test(File project) throws MojoFailureException, MojoExecutionException {
         val flowmanSettings = getEffectiveFlowmanSettings();
         val mavenProject = mojo.getCurrentMavenProject();
-        val buildDirectory = new File(mavenProject.getBuild().getDirectory());
-        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory());
+        val buildDirectory = getBuildDirectory();
+        val outputDirectory = getOutputDirectory();
 
         val confDirectory = new File(outputDirectory, "conf");
         // TODO: This assumes a certain directory structure in the tar.gz
@@ -137,8 +137,8 @@ public class DistDeployment extends AbstractDeployment {
     public void pack() throws MojoFailureException, MojoExecutionException {
         val flowmanSettings = getEffectiveFlowmanSettings();
         val mavenProject = mojo.getCurrentMavenProject();
-        val buildDirectory = new File(mavenProject.getBuild().getDirectory());
-        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory());
+        val buildDirectory = getBuildDirectory();
+        val outputDirectory = getOutputDirectory();
         val confDirectory = new File(outputDirectory, "conf");
         // TODO: This assumes a certain directory structure in the tar.gz
         val homeDirectory = new File(buildDirectory, "flowman-" + flowmanSettings.getVersion());
@@ -202,7 +202,7 @@ public class DistDeployment extends AbstractDeployment {
             "conf",
             "0644",
             "0755",
-            Arrays.asList("conf/*"),
+            Collections.emptyList(),
             Collections.emptyList()
         ));
         // Plugins
@@ -225,7 +225,7 @@ public class DistDeployment extends AbstractDeployment {
                 "flows/" + project.getName(),
                 "0644",
                 "0755",
-                Arrays.asList("**/*"),
+                Collections.emptyList(),
                 Collections.emptyList()
             ))
         );

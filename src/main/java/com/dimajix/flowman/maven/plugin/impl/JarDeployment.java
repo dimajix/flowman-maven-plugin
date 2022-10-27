@@ -52,7 +52,7 @@ public class JarDeployment extends AbstractDeployment {
     public void build() throws MojoFailureException, MojoExecutionException {
         val flowmanSettings = getEffectiveFlowmanSettings();
         val mavenProject = mojo.getCurrentMavenProject();
-        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory(), "META-INF/flowman");
+        val outputDirectory = new File(getOutputDirectory(), "META-INF/flowman");
 
         // 1. Process sources
         val resources = new ProcessResources(mojo, this, mavenProject);
@@ -94,7 +94,7 @@ public class JarDeployment extends AbstractDeployment {
     @Override
     public void test(File project) throws MojoFailureException, MojoExecutionException {
         val mavenProject = mojo.getCurrentMavenProject();
-        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory(), "META-INF/flowman");
+        val outputDirectory = new File(getOutputDirectory(), "META-INF/flowman");
         val confDirectory = new File(outputDirectory, "conf");
         val projectDirectories = project != null ? java.util.Collections.singletonList(project) : mojo.getDescriptor().getProjects();
 
@@ -109,8 +109,8 @@ public class JarDeployment extends AbstractDeployment {
     @Override
     public void pack() throws MojoFailureException, MojoExecutionException {
         val mavenProject = mojo.getCurrentMavenProject();
-        val buildDirectory = new File(mavenProject.getBuild().getDirectory());
-        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory());
+        val buildDirectory = getBuildDirectory();
+        val outputDirectory = getOutputDirectory();
 
         // 2. Build Jar
         val jar = new BuildJar(mojo, this, mavenProject);
@@ -132,7 +132,7 @@ public class JarDeployment extends AbstractDeployment {
     @Override
     public void shell(File flow) throws MojoExecutionException, MojoFailureException {
         val mavenProject = mojo.getCurrentMavenProject();
-        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory(), "META-INF/flowman");
+        val outputDirectory = new File(getOutputDirectory(), "META-INF/flowman");
         val projectDirectory = new File(outputDirectory, flow.getPath());
         val confDirectory = new File(outputDirectory, "conf");
 

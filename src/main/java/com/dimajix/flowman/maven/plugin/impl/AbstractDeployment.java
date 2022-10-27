@@ -83,6 +83,13 @@ abstract public class AbstractDeployment extends Deployment {
         return result;
     }
 
+    protected File getBuildDirectory() {
+        return new File(mojo.getCurrentMavenProject().getBuild().getDirectory());
+    }
+    protected File getOutputDirectory() {
+        return new File(mojo.getCurrentMavenProject().getBuild().getOutputDirectory());
+    }
+
     protected Dependency toDependency(Artifact artifact) {
         val dep = new Dependency();
         dep.setGroupId(artifact.getGroupId());
