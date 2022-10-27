@@ -49,16 +49,16 @@ public class RunArtifacts extends Task {
         this.confDirectory = confDirectory;
     }
 
-    public void runTests(File projectDirectory) throws MojoExecutionException {
+    public void runTests(File projectDirectory) throws MojoExecutionException, MojoFailureException {
         run("com.dimajix.flowman.tools.exec.Driver", projectDirectory, "test", "run");
     }
 
-    public void runShell(File projectDirectory) throws MojoExecutionException {
+    public void runShell(File projectDirectory) throws MojoExecutionException, MojoFailureException {
         run("com.dimajix.flowman.tools.shell.Shell", projectDirectory);
     }
 
-    public void run(String mainClass, File projectDirectory, String... args) throws MojoExecutionException {
-        val executionSettings = deployment.getExecutionSettings();
+    public void run(String mainClass, File projectDirectory, String... args) throws MojoExecutionException, MojoFailureException {
+        val executionSettings = deployment.getEffectiveExecutionSettings();
 
         // Construct classpath
         val depres = resolveDependencies();

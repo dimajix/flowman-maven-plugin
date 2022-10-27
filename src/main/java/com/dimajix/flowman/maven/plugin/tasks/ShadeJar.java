@@ -60,7 +60,7 @@ public class ShadeJar extends Task {
             goal("shade"),
             configuration(
                 element(name("shadedClassifierName"), deployment.getName()),
-                element(name("outputDirectory"), deployment.getBuildDirectory().toString()),
+                element(name("outputDirectory"), buildDirectory.toString()),
                 element(name("createDependencyReducedPom"), "false"),
                 element(name("keepDependenciesWithProvidedScope"), "false"),
                 element(name("transformers"),

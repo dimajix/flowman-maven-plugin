@@ -20,21 +20,27 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.dimajix.flowman.maven.plugin.tasks.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.val;
 import lombok.var;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
+import static com.dimajix.flowman.maven.plugin.util.Jackson.newYAMLFactory;
+
 import com.dimajix.flowman.maven.plugin.util.Collections;
+import com.dimajix.flowman.maven.plugin.util.Jackson;
 
 public class JarDeployment extends AbstractDeployment {
     @JsonProperty(value="applicationPath", required = true)
@@ -44,43 +50,53 @@ public class JarDeployment extends AbstractDeployment {
 
     @Override
     public void build() throws MojoFailureException, MojoExecutionException {
-        val outputDirectory = new File(this.outputDirectory, "META-INF/flowman");
-
+        val flowmanSettings = getEffectiveFlowmanSettings();
         val mavenProject = mojo.getCurrentMavenProject();
+        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory(), "META-INF/flowman");
 
         // 1. Process sources
         val resources = new ProcessResources(mojo, this, mavenProject);
         resources.processResources(mojo.getDescriptor().getProjects(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
 
-        // Remove any plugins from default-namespace.yml
+        // Create appropriate default-namespace.yml
         val ns = new File(outputDirectory, "conf/default-namespace.yml");
-        if (ns.exists() && ns.isFile()) {
-            val mapper = new ObjectMapper(new YAMLFactory());
-            try {
-                JsonNode tree;
+        try {
+            val mapper = new ObjectMapper(newYAMLFactory());
+            var objectTree = mapper.getNodeFactory().objectNode();
+
+            // Parse existing file (if it exists)
+            if (ns.exists() && ns.isFile()) {
                 try (val reader = new FileInputStream(ns)) {
-                    tree = mapper.reader().readTree(reader);
+                    JsonNode tree = mapper.reader().readTree(reader);
+                    if (tree.isObject())
+                        objectTree = (ObjectNode)tree;
                 }
-                if (tree.isObject() && tree.findValue("plugins") != null) {
-                    val objectTree = (ObjectNode)tree;
+                // Remove plugins
+                if (objectTree.findValue("plugins") != null) {
                     objectTree.without("plugins");
-                    mapper.writer().writeValue(ns, objectTree);
                 }
             }
-            catch(IOException ex) {
-                throw new MojoFailureException(ex);
-            }
+
+            // Add config & env
+            val configValues = flowmanSettings.getConfig();
+            Jackson.mergeArray(objectTree, "config", configValues);
+            val envValues = flowmanSettings.getEnvironment();
+            Jackson.mergeArray(objectTree, "environment", envValues);
+
+            mapper.writer().writeValue(ns, objectTree);
+        }
+        catch(IOException ex) {
+            throw new MojoFailureException(ex);
         }
     }
 
     @Override
     public void test(File project) throws MojoFailureException, MojoExecutionException {
-        val outputDirectory = new File(this.outputDirectory, "META-INF/flowman");
+        val mavenProject = mojo.getCurrentMavenProject();
+        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory(), "META-INF/flowman");
         val confDirectory = new File(outputDirectory, "conf");
         val projectDirectories = project != null ? java.util.Collections.singletonList(project) : mojo.getDescriptor().getProjects();
-
-        val mavenProject = mojo.getCurrentMavenProject();
 
         // Execute Tests
         val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
@@ -93,6 +109,8 @@ public class JarDeployment extends AbstractDeployment {
     @Override
     public void pack() throws MojoFailureException, MojoExecutionException {
         val mavenProject = mojo.getCurrentMavenProject();
+        val buildDirectory = new File(mavenProject.getBuild().getDirectory());
+        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory());
 
         // 2. Build Jar
         val jar = new BuildJar(mojo, this, mavenProject);
@@ -113,11 +131,10 @@ public class JarDeployment extends AbstractDeployment {
 
     @Override
     public void shell(File flow) throws MojoExecutionException, MojoFailureException {
-        val outputDirectory = new File(this.outputDirectory, "META-INF/flowman");
+        val mavenProject = mojo.getCurrentMavenProject();
+        val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory(), "META-INF/flowman");
         val projectDirectory = new File(outputDirectory, flow.getPath());
         val confDirectory = new File(outputDirectory, "conf");
-
-        val mavenProject = mojo.getCurrentMavenProject();
 
         val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
         run.runShell(projectDirectory);
@@ -130,8 +147,14 @@ public class JarDeployment extends AbstractDeployment {
 
         val flowmanTools = flowmanSettings.resolveTools();
         val flowmanSpark = flowmanSettings.resolveSparkDependencies();
-        val dependencyArtifacts = buildSettings.resolveDependencies();
-        val allDeps = Collections.concat(Arrays.asList(flowmanTools, flowmanSpark), dependencyArtifacts);
+        val flowmanPlugins = flowmanSettings.resolvePluginJars();
+        val dependencies = buildSettings.resolveDependencies();
+
+        val allDeps = new LinkedList<Artifact>();
+        allDeps.add(flowmanTools);
+        allDeps.add(flowmanSpark);
+        allDeps.addAll(dependencies);
+        allDeps.addAll(flowmanPlugins);
 
         return toDependencies(allDeps);
     }

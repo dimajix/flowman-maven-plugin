@@ -58,21 +58,15 @@ public abstract class Deployment {
     @JsonProperty(value="execution", required = false)
     protected ExecutionSettings executionSettings = new ExecutionSettings();
 
+
     abstract public FlowmanSettings getEffectiveFlowmanSettings() throws MojoFailureException;
-
     abstract public BuildSettings getEffectiveBuildSettings() throws MojoFailureException;
-    abstract public ExecutionSettings getEffectiveExecutionSettings(Deployment deployment) throws MojoFailureException;
-    abstract public File getBuildDirectory();
-
+    abstract public ExecutionSettings getEffectiveExecutionSettings() throws MojoFailureException;
 
     abstract public void init(FlowmanMojo mojo);
-
     abstract public void build() throws MojoFailureException, MojoExecutionException;
-
     abstract public void test(File project) throws MojoFailureException, MojoExecutionException;
-
     abstract public void shell(File flow) throws MojoFailureException, MojoExecutionException;
-
     abstract public void pack() throws MojoFailureException, MojoExecutionException;
 
     abstract public List<Dependency> getDependencies() throws MojoFailureException, MojoExecutionException;

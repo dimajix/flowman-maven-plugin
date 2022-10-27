@@ -18,6 +18,7 @@ package com.dimajix.flowman.maven.plugin.model;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,6 +27,8 @@ import lombok.val;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
+
+import com.dimajix.flowman.maven.plugin.util.Artifacts;
 
 
 @Data
@@ -94,41 +97,28 @@ public class FlowmanSettings {
         );
     }
 
-    public List<Artifact> resolvePlugins() {
-        return plugins.stream().map(pi -> {
-            val parts = pi.split(":");
-            String groupId = null;
-            String artifactId = null;
-            String version = this.version;
-            String type = "jar";
-            if (parts.length == 2) {
-                groupId = parts[0];
-                artifactId = parts[1];
-            }
-            else if (parts.length == 3) {
-                groupId = parts[0];
-                artifactId = parts[1];
-                version = parts[2];
-            }
-            else if (parts.length == 4) {
-                groupId = parts[0];
-                artifactId = parts[1];
-                type = parts[2];
-                version = parts[3];
-            }
-            else {
-                throw new IllegalArgumentException("Unsupported plugin artifact id " + pi);
-            }
+    public List<Artifact> resolvePluginJars() {
+        return resolvePlugins("jar", null);
+    }
 
-            return new DefaultArtifact(
-                groupId,
-                artifactId,
-                version,
-                "compile",
-                type,
-                null,
-                new DefaultArtifactHandler()
-            );
-        }).collect(Collectors.toList());
+    public List<Artifact> resolvePluginDists() {
+        return resolvePlugins("tar.gz", "bin");
+    }
+
+    private List<Artifact> resolvePlugins(String type, String classifier) {
+        val builtinPluginRegex = Pattern.compile("flowman-([a-z0-9]+)");
+        return plugins.stream()
+            .map(d -> {
+                val matcher = builtinPluginRegex.matcher(d);
+                if (matcher.matches()) {
+                    val pluginSuffix = matcher.group(1);
+                    return "com.dimajix.flowman:flowman-plugin-" + pluginSuffix;
+                }
+                else {
+                    return d;
+                }
+            })
+            .map(d -> Artifacts.parseCoordinates(d, type, classifier, version))
+            .collect(Collectors.toList());
     }
 }

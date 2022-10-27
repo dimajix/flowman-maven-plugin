@@ -30,8 +30,8 @@ import com.dimajix.flowman.maven.plugin.model.Deployment;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 
-public class UnpackDist extends Task {
-    public UnpackDist(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
+public class UnpackDependencies extends Task {
+    public UnpackDependencies(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
         super(mojo, deployment, mavenProject);
     }
 

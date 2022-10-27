@@ -16,6 +16,7 @@
 
 package com.dimajix.flowman.maven.plugin.mojos;
 
+import java.io.File;
 import java.util.Collections;
 
 import lombok.val;
@@ -50,7 +51,7 @@ public class TestMojo extends FlowmanMojo {
                 val previousProject = mavenSession.getCurrentProject();
                 try {
                     mavenSession.setCurrentProject(mavenProject);
-                    val flow = project != null ? getFlowmanProject(this.project) : null;
+                    File flow = project != null ? getFlowmanProject(this.project) : null;
                     deployment.test(flow);
                 }
                 finally {

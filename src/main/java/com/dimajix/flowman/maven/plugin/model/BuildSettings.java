@@ -23,11 +23,11 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.handler.DefaultArtifactHandler;
+
+import com.dimajix.flowman.maven.plugin.util.Artifacts;
+
 
 @Data
 public class BuildSettings {
@@ -48,36 +48,8 @@ public class BuildSettings {
     }
 
     public List<Artifact> resolveDependencies() {
-        return dependencies.stream().map(pi -> {
-            val parts = pi.split(":");
-            String groupId = null;
-            String artifactId = null;
-            String version = null;
-            String type = "jar";
-            if (parts.length == 3) {
-                groupId = parts[0];
-                artifactId = parts[1];
-                version = parts[2];
-            }
-            else if (parts.length == 4) {
-                groupId = parts[0];
-                artifactId = parts[1];
-                type = parts[2];
-                version = parts[3];
-            }
-            else {
-                throw new IllegalArgumentException("Unsupported dependency artifact: " + pi);
-            }
-
-            return new DefaultArtifact(
-                groupId,
-                artifactId,
-                version,
-                "compile",
-                type,
-                null,
-                new DefaultArtifactHandler()
-            );
-        }).collect(Collectors.toList());
+        return dependencies.stream()
+            .map(Artifacts::parseCoordinates)
+            .collect(Collectors.toList());
     }
 }

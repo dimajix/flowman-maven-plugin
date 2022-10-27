@@ -160,9 +160,15 @@ abstract public class FlowmanMojo extends AbstractMojo {
         val mojoProject = getMavenProject();
         val mojoArtifact = mojoProject.getArtifact();
         val artifact = outputArtifact != null ? outputArtifact : new AttachedArtifact(mojoArtifact, "jar", deployment.getName(), mojoArtifact.getArtifactHandler());
+
+        val mojoBuild = mojoProject.getBuild();
+        val build = mojoBuild.clone();
+        build.setDirectory(new File(buildDirectory, deployment.getName()).toString());
+        build.setOutputDirectory(new File(new File(buildDirectory, deployment.getName()), "resources").toString());
+
         val mavenProject = new MavenProject(mojoProject.getModel().clone());
         mavenProject.setOriginalModel(mojoProject.getModel());
-        mavenProject.setBuild(mojoProject.getBuild().clone());
+        mavenProject.setBuild(build);
         mavenProject.setFile(mojoProject.getFile());
         mavenProject.setArtifact(artifact);
         mavenProject.setRemoteArtifactRepositories(mojoProject.getRemoteArtifactRepositories());

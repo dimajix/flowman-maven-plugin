@@ -40,14 +40,14 @@ public abstract class Task {
 
     public Task(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
         this.deployment = deployment;
+        this.mavenProject = mavenProject;
         this.mavenSession = mojo.getMavenSession();
         this.pluginManager = mojo.getPluginManager();
         this.dependenciesResolver = mojo.getDependenciesResolver();
 
-        this.buildDirectory = deployment.getBuildDirectory();
+        this.buildDirectory = new File(mavenProject.getBuild().getDirectory());
         this.flowmanSettings = deployment.getEffectiveFlowmanSettings();
         this.buildSettings = deployment.getEffectiveBuildSettings();
-        this.mavenProject = mavenProject;
     }
 
     public Artifact getArtifact() {

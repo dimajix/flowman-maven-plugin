@@ -43,20 +43,12 @@ abstract public class AbstractDeployment extends Deployment {
     protected FlowmanMojo mojo;
     @JsonIgnore
     protected Log log;
-    @Getter
-    @JsonIgnore
-    protected File buildDirectory;
-    @Getter
-    @JsonIgnore
-    protected File outputDirectory;
 
 
     @Override
     public void init(FlowmanMojo mojo) {
         this.mojo = mojo;
         this.log = mojo.getLog();
-        buildDirectory =  new File(mojo.getBuildDirectory(), getName());
-        outputDirectory = new File(buildDirectory, "resources");
     }
 
     @Override
@@ -79,7 +71,7 @@ abstract public class AbstractDeployment extends Deployment {
         return result;
     }
     @Override
-    public ExecutionSettings getEffectiveExecutionSettings(Deployment deployment) throws MojoFailureException {
+    public ExecutionSettings getEffectiveExecutionSettings() throws MojoFailureException {
         val descriptorSettings = mojo.getDescriptor().getExecutionSettings();
         val result = new ExecutionSettings();
         result.setEnvironment(Collections.concat(descriptorSettings.getEnvironment(), executionSettings.getEnvironment()));
