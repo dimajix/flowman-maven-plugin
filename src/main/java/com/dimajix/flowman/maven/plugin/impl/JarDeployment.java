@@ -19,7 +19,6 @@ package com.dimajix.flowman.maven.plugin.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,9 +26,7 @@ import com.dimajix.flowman.maven.plugin.tasks.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.val;
 import lombok.var;
 import org.apache.maven.artifact.Artifact;
@@ -39,7 +36,6 @@ import org.apache.maven.plugin.MojoFailureException;
 
 import static com.dimajix.flowman.maven.plugin.util.Jackson.newYAMLFactory;
 
-import com.dimajix.flowman.maven.plugin.util.Collections;
 import com.dimajix.flowman.maven.plugin.util.Jackson;
 
 
@@ -132,14 +128,23 @@ public class JarDeployment extends AbstractDeployment {
     }
 
     @Override
-    public void shell(File flow) throws MojoExecutionException, MojoFailureException {
+    public void shell(File project) throws MojoExecutionException, MojoFailureException {
         val mavenProject = mojo.getCurrentMavenProject();
         val outputDirectory = new File(getOutputDirectory(), "META-INF/flowman");
-        val projectDirectory = new File(outputDirectory, flow.getPath());
+        val projectDirectory = new File(outputDirectory, project.getPath());
         val confDirectory = new File(outputDirectory, "conf");
 
         val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
         run.runShell(projectDirectory);
+    }
+
+    @Override
+    public void push() throws MojoFailureException, MojoExecutionException {
+        // The jar will be pushed to Nexus via the root Maven project
+    }
+
+    @Override
+    public void deploy() throws MojoFailureException, MojoExecutionException {
     }
 
     @Override

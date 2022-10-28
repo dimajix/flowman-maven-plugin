@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.val;
 import lombok.var;
@@ -40,12 +39,12 @@ import org.apache.maven.plugin.MojoFailureException;
 import static com.dimajix.flowman.maven.plugin.util.Jackson.newYAMLFactory;
 
 import com.dimajix.flowman.maven.plugin.tasks.AssembleDist;
+import com.dimajix.flowman.maven.plugin.tasks.DeployArtifacts;
 import com.dimajix.flowman.maven.plugin.tasks.ProcessResources;
 import com.dimajix.flowman.maven.plugin.tasks.RunArtifacts;
 import com.dimajix.flowman.maven.plugin.tasks.UnpackDependencies;
 import com.dimajix.flowman.maven.plugin.tasks.assembly.AssemblyDescriptor;
 import com.dimajix.flowman.maven.plugin.tasks.assembly.FileSet;
-import com.dimajix.flowman.maven.plugin.util.Artifacts;
 import com.dimajix.flowman.maven.plugin.util.Jackson;
 
 
@@ -253,19 +252,29 @@ public class DistDeployment extends AbstractDeployment {
     }
 
     @Override
-    public void shell(File flow) throws MojoFailureException, MojoExecutionException {
+    public void shell(File project) throws MojoFailureException, MojoExecutionException {
         val flowmanSettings = getEffectiveFlowmanSettings();
         val mavenProject = mojo.getCurrentMavenProject();
         val buildDirectory = new File(mavenProject.getBuild().getDirectory());
         val outputDirectory = new File(mavenProject.getBuild().getOutputDirectory());
 
-        val projectDirectory = new File(outputDirectory, flow.getPath());
+        val projectDirectory = new File(outputDirectory, project.getPath());
         val confDirectory = new File(outputDirectory, "conf");
         // TODO: This assumes a certain directory structure in the tar.gz
         val homeDirectory = new File(buildDirectory, "flowman-" + flowmanSettings.getVersion());
 
         val run = new RunArtifacts(mojo, this, mavenProject, homeDirectory, confDirectory);
         run.runShell(projectDirectory);
+    }
+
+    @Override
+    public void push() throws MojoFailureException, MojoExecutionException {
+        // The dist will be pushed to Nexus via the root Maven project
+    }
+
+    @Override
+    public void deploy() throws MojoFailureException, MojoExecutionException {
+
     }
 
     @Override

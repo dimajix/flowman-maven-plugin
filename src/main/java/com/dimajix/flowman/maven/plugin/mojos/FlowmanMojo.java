@@ -178,6 +178,7 @@ abstract public class FlowmanMojo extends AbstractMojo {
         mavenProject.setArtifact(artifact);
         mavenProject.setRemoteArtifactRepositories(mojoProject.getRemoteArtifactRepositories());
         mavenProject.setPluginArtifactRepositories(mojoProject.getPluginArtifactRepositories());
+        mavenProject.setDistributionManagement(mojoProject.getDistributionManagement());
 
         val flowmanSettings = deployment.getEffectiveFlowmanSettings();
         val parent0 = flowmanSettings.resolveParent();

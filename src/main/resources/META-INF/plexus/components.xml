@@ -21,7 +21,7 @@
                         org.apache.maven.plugins:maven-install-plugin:install
                     </install>
                     <deploy>
-                        org.apache.maven.plugins:maven-deploy-plugin:deploy
+                        org.apache.maven.plugins:maven-deploy-plugin:deploy,com.dimajix.flowman:flowman-maven-plugin:push
                     </deploy>
                 </phases>
             </configuration>

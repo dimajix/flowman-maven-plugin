@@ -66,8 +66,10 @@ public abstract class Deployment {
     abstract public void init(FlowmanMojo mojo);
     abstract public void build() throws MojoFailureException, MojoExecutionException;
     abstract public void test(File project) throws MojoFailureException, MojoExecutionException;
-    abstract public void shell(File flow) throws MojoFailureException, MojoExecutionException;
+    abstract public void shell(File project) throws MojoFailureException, MojoExecutionException;
     abstract public void pack() throws MojoFailureException, MojoExecutionException;
+    abstract public void push() throws MojoFailureException, MojoExecutionException;
+    abstract public void deploy() throws MojoFailureException, MojoExecutionException;
 
     abstract public List<Dependency> getDependencies() throws MojoFailureException, MojoExecutionException;
 }
