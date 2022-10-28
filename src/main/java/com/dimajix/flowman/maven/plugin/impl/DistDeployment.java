@@ -77,13 +77,14 @@ public class DistDeployment extends AbstractDeployment {
         // 3. Process sources
         val resources = new ProcessResources(mojo, this, mavenProject);
         resources.processResources(mojo.getDescriptor().getProjects(), outputDirectory);
+        resources.processResources(mojo.getDescriptor().getResources(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
 
         // 4. Create appropriate default-namespace.yml
         val ns = new File(outputDirectory, "conf/default-namespace.yml");
         try {
             val mapper = new ObjectMapper(newYAMLFactory());
-            var objectTree = mapper.getNodeFactory().objectNode();
+            ObjectNode objectTree = null;
 
             // Parse existing file (if it exists)
             if (ns.exists() && ns.isFile()) {
@@ -92,6 +93,10 @@ public class DistDeployment extends AbstractDeployment {
                     if (tree.isObject())
                         objectTree = (ObjectNode)tree;
                 }
+            }
+            if (objectTree == null) {
+                objectTree = mapper.getNodeFactory().objectNode();
+                objectTree.put("name", "default");
             }
 
             // Add config, env & plugins
@@ -142,7 +147,6 @@ public class DistDeployment extends AbstractDeployment {
         val confDirectory = new File(outputDirectory, "conf");
         // TODO: This assumes a certain directory structure in the tar.gz
         val homeDirectory = new File(buildDirectory, "flowman-" + flowmanSettings.getVersion());
-        val projectDirectories = mojo.getDescriptor().getProjects();
 
         val ns = new File(outputDirectory, "conf/default-namespace.yml");
         val plugins = new HashSet<String>();
@@ -211,7 +215,7 @@ public class DistDeployment extends AbstractDeployment {
             .forEach(plugin ->
                 fileSets.add(new FileSet(
                     new File(homeDirectory, "plugins/" + plugin).toString(),
-                    "plugins/" + plugin,
+                    new File("plugins", plugin).toString(),
                     "0644",
                     "0755",
                     Collections.emptyList(),
@@ -219,10 +223,21 @@ public class DistDeployment extends AbstractDeployment {
                 ))
             );
         // Projects
-        projectDirectories.forEach(project ->
+        mojo.getDescriptor().getProjects().forEach(project ->
             fileSets.add(new FileSet(
                 new File(outputDirectory, project.getPath()).toString(),
-                "flows/" + project.getName(),
+                new File("flows", project.getPath()).toString(),
+                "0644",
+                "0755",
+                Collections.emptyList(),
+                Collections.emptyList()
+            ))
+        );
+        // Additional Resources
+        mojo.getDescriptor().getResources().forEach(resource ->
+            fileSets.add(new FileSet(
+                new File(outputDirectory, resource.getPath()).toString(),
+                new File("flows", resource.getPath()).toString(),
                 "0644",
                 "0755",
                 Collections.emptyList(),

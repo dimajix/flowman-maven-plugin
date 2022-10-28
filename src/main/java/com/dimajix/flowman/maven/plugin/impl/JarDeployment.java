@@ -42,6 +42,7 @@ import static com.dimajix.flowman.maven.plugin.util.Jackson.newYAMLFactory;
 import com.dimajix.flowman.maven.plugin.util.Collections;
 import com.dimajix.flowman.maven.plugin.util.Jackson;
 
+
 public class JarDeployment extends AbstractDeployment {
     @JsonProperty(value="applicationPath", required = true)
     private String applicationPath;
@@ -57,6 +58,7 @@ public class JarDeployment extends AbstractDeployment {
         // 1. Process sources
         val resources = new ProcessResources(mojo, this, mavenProject);
         resources.processResources(mojo.getDescriptor().getProjects(), outputDirectory);
+        resources.processResources(mojo.getDescriptor().getResources(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
 
         // Create appropriate default-namespace.yml

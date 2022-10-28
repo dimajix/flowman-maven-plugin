@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;

@@ -43,6 +43,9 @@ public class Descriptor {
     @JsonProperty(value="projects", required = true)
     private List<File> projects = Collections.emptyList();
 
+    @JsonProperty(value="resources", required = false)
+    private List<File> resources = Collections.emptyList();
+
     @JsonDeserialize(converter= DeploymentNameResolver.class)
     @JsonProperty(value="deployments", required = true)
     private Map<String,Deployment> deployments = Collections.emptyMap();

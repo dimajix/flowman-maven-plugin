@@ -16,7 +16,14 @@
 
 package com.dimajix.flowman.maven.plugin.mojos;
 
-import com.dimajix.flowman.maven.plugin.model.*;
+import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.val;
@@ -27,7 +34,7 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Exclusion;
-import org.apache.maven.model.composition.DefaultDependencyManagementImporter;
+import org.apache.maven.model.Model;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -43,11 +50,9 @@ import org.eclipse.aether.resolution.ArtifactDescriptorException;
 import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
 import org.eclipse.aether.resolution.ArtifactDescriptorResult;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.Descriptor;
+import com.dimajix.flowman.maven.plugin.model.ObjectMapper;
 
 abstract public class FlowmanMojo extends AbstractMojo {
     /**
@@ -209,7 +214,9 @@ abstract public class FlowmanMojo extends AbstractMojo {
             val artifact = dep0.getArtifact();
             dep.setGroupId(artifact.getGroupId());
             dep.setArtifactId(artifact.getArtifactId());
-            dep.setClassifier(artifact.getClassifier());
+            dep.setClassifier(StringUtils.isNotEmpty(artifact.getClassifier()) ? artifact.getClassifier() : null);
+            dep.setVersion(artifact.getVersion());
+            dep.setType(artifact.getExtension());
             dep.setScope(dep0.getScope());
             if (dep0.getExclusions() != null) {
                 val exclusions = dep0.getExclusions().stream().map(ex0 -> {
@@ -222,7 +229,30 @@ abstract public class FlowmanMojo extends AbstractMojo {
             }
             depMgmt.addDependency(dep);
         });
-        val merger = new DefaultDependencyManagementImporter();
-        merger.importManagement(mavenProject.getModel(), java.util.Collections.singletonList(depMgmt), null, null);
+        importManagement(mavenProject.getModel(), depMgmt, true);
+    }
+
+    private void importManagement(Model target, DependencyManagement source, boolean overrideTarget) {
+        Map<String, Dependency> dependencies = new LinkedHashMap<>();
+        DependencyManagement depMgmt = target.getDependencyManagement();
+
+        if ( depMgmt != null ) {
+            for ( Dependency dependency : depMgmt.getDependencies() ) {
+                dependencies.put( dependency.getManagementKey(), dependency );
+            }
+        }
+        else {
+            depMgmt = new DependencyManagement();
+            target.setDependencyManagement( depMgmt );
+        }
+
+        for ( Dependency dependency : source.getDependencies() ) {
+            String key = dependency.getManagementKey();
+            if ( overrideTarget || !dependencies.containsKey( key ) ) {
+                dependencies.put( key, dependency );
+            }
+        }
+
+        depMgmt.setDependencies( new ArrayList<>( dependencies.values() ) );
     }
 }
