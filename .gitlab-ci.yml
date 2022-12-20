@@ -31,9 +31,16 @@ cache:
     - .npm
 
 
+# Default build variant
+build-default:
+  stage: build
+  script: 'mvn ${MAVEN_CLI_OPTS} clean package'
+
+
 # Run security tests
 sast:
   stage: test
+
 
 # Build site and reports
 build-site:
@@ -46,9 +53,3 @@ build-site:
     expire_in: 5 days
 
 
-# Default build variant
-build-default:
-  stage: build
-  script: 'mvn ${MAVEN_CLI_OPTS} clean package'
-  except:
-    - pushes
