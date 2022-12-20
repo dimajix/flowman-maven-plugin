@@ -33,7 +33,7 @@ mvn clean install
         <plugins>
             <plugin>
                 <!-- 2. Process project resources -->
-                <groupId>com.dimajix.flowman</groupId>
+                <groupId>com.dimajix.flowman.maven</groupId>
                 <artifactId>flowman-maven-plugin</artifactId>
                 <version>0.1.0-SNAPSHOT</version>
                 <extensions>true</extensions>

@@ -8,9 +8,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Flowman Maven Root</name>
+    <name>Flowman Maven Utilities Root</name>
     <description>
-        The Flowman Maven plugin will help you to streamline the development workflow with Flowman. It will take
+        The Flowman Maven utilities will help you to streamline the development workflow with Flowman. It will take
         care of building appropriate variants for different Hadoop/Spark distributions and automate the descriptor
         of the final artifact to some environments (EMR, DataBricks, etc).
     </description>
@@ -35,22 +35,22 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/dimajix/flowman-maven-plugin.git</connection>
-        <developerConnection>scm:git:ssh://github.com:dimajix/flowman-maven-plugin.git</developerConnection>
-        <url>https://github.com/dimajix/flowman-maven-plugin/tree/master</url>
+        <connection>scm:git:git://github.com/dimajix/flowman-maven.git</connection>
+        <developerConnection>scm:git:ssh://github.com:dimajix/flowman-maven.git</developerConnection>
+        <url>https://github.com/dimajix/flowman-maven/tree/master</url>
     </scm>
     <issueManagement>
-        <url>https://github.com/dimajix/flowman-maven-plugin/issues</url>
+        <url>https://github.com/dimajix/flowman-maven/issues</url>
     </issueManagement>
 
     <distributionManagement>
         <snapshotRepository>
-            <id>${descriptor.repository.snapshot-id}</id>
-            <url>${descriptor.repository.snapshot-url}</url>
+            <id>${deployment.repository.snapshot-id}</id>
+            <url>${deployment.repository.snapshot-url}</url>
         </snapshotRepository>
         <repository>
-            <id>${descriptor.repository.id}</id>
-            <url>${descriptor.repository.url}</url>
+            <id>${deployment.repository.id}</id>
+            <url>${deployment.repository.url}</url>
         </repository>
     </distributionManagement>
 
@@ -68,11 +68,11 @@
         <gpg.skip>true</gpg.skip>
 
         <!-- Definition of the release repository -->
-        <descriptor.repository.id>ossrh</descriptor.repository.id>
-        <descriptor.repository.snapshot-id>${descriptor.repository.id}</descriptor.repository.snapshot-id>
-        <descriptor.repository.server>https://oss.sonatype.org/</descriptor.repository.server>
-        <descriptor.repository.url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</descriptor.repository.url>
-        <descriptor.repository.snapshot-url>https://oss.sonatype.org/content/repositories/snapshots</descriptor.repository.snapshot-url>
+        <deployment.repository.id>ossrh</deployment.repository.id>
+        <deployment.repository.snapshot-id>${deployment.repository.id}</deployment.repository.snapshot-id>
+        <deployment.repository.server>https://oss.sonatype.org/</deployment.repository.server>
+        <deployment.repository.url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</deployment.repository.url>
+        <deployment.repository.snapshot-url>https://oss.sonatype.org/content/repositories/snapshots</deployment.repository.snapshot-url>
 
         <!-- Encoding related settings -->
         <encoding>UTF-8</encoding>
@@ -162,8 +162,8 @@
                 <version>1.6.13</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>${descriptor.repository.id}</serverId>
-                    <nexusUrl>${descriptor.repository.server}</nexusUrl>
+                    <serverId>${deployment.repository.id}</serverId>
+                    <nexusUrl>${deployment.repository.server}</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                     <stagingProgressTimeoutMinutes>60</stagingProgressTimeoutMinutes>
                 </configuration>
