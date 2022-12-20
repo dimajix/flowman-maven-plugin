@@ -1,0 +1,22 @@
+flowman:
+  version: @flowman.version@
+  plugins:
+    - flowman-aws
+    - flowman-mariadb
+    - flowman-mysql
+
+
+# List of subdirectories containing Flowman projects
+projects:
+  - flow
+
+
+deployments:
+  distd:
+    kind: dist
+    #installPath: s3://
+
+  jard:
+    kind: fatjar
+    #applicationPath: s3://
+    #projectPath: s3://
