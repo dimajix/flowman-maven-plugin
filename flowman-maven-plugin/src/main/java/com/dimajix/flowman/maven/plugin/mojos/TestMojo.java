@@ -47,7 +47,7 @@ public class TestMojo extends FlowmanMojo {
                 getLog().info("");
                 getLog().info("-- Testing deployment '" + deployment.getName() + "'");
 
-                val mavenProject = createMavenProject(deployment, null);
+                val mavenProject = createMavenProject(deployment);
                 val previousProject = mavenSession.getCurrentProject();
                 try {
                     mavenSession.setCurrentProject(mavenProject);

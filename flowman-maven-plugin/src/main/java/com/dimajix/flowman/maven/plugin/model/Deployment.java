@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -57,6 +58,8 @@ public abstract class Deployment {
     @Setter
     @JsonProperty(value="execution", required = false)
     protected ExecutionSettings executionSettings = new ExecutionSettings();
+
+    abstract public String getType();
 
 
     abstract public FlowmanSettings getEffectiveFlowmanSettings() throws MojoFailureException;

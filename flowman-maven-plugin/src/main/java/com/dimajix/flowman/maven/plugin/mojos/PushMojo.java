@@ -42,7 +42,7 @@ public class PushMojo extends FlowmanMojo {
             getLog().info("");
             getLog().info("-- Pushing deployment '" + deployment.getName() + "'");
 
-            val project = createMavenProject(deployment, null);
+            val project = createMavenProject(deployment);
             val previousProject = mavenSession.getCurrentProject();
             try {
                 mavenSession.setCurrentProject(project);

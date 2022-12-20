@@ -34,18 +34,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.val;
 import lombok.var;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import static com.dimajix.flowman.maven.plugin.util.Jackson.newYAMLFactory;
 
-import com.dimajix.flowman.maven.fs.FileSystem;
 import com.dimajix.flowman.maven.plugin.tasks.AssembleDist;
-import com.dimajix.flowman.maven.plugin.tasks.ResolveArtifact;
 import com.dimajix.flowman.maven.plugin.tasks.ProcessResources;
+import com.dimajix.flowman.maven.plugin.tasks.ResolveArtifact;
 import com.dimajix.flowman.maven.plugin.tasks.RunArtifacts;
 import com.dimajix.flowman.maven.plugin.tasks.UnpackDependencies;
 import com.dimajix.flowman.maven.plugin.tasks.assembly.AssemblyDescriptor;
@@ -58,6 +55,11 @@ public class DistDeployment extends AbstractDeployment {
     private String baseDirectory;
     @JsonProperty(value="targetLocation", required = false)
     private String targetLocation;
+
+    @Override
+    public String getType() {
+        return "pom";
+    }
 
     @Override
     public void build() throws MojoFailureException, MojoExecutionException {
@@ -281,17 +283,7 @@ public class DistDeployment extends AbstractDeployment {
     public void deploy() throws MojoFailureException, MojoExecutionException {
         // Pull and copy artifact
         val mavenProject = mojo.getCurrentMavenProject();
-        val projectArtifact = mavenProject.getArtifact();
-        ArtifactHandler artifactHandler = mojo.getArtifactHandlerManager().getArtifactHandler("tar.gz");
-        val myArtifact = new DefaultArtifact(
-            projectArtifact.getGroupId(),
-            projectArtifact.getArtifactId(),
-            projectArtifact.getVersion(),
-            null,
-            "tar.gz",
-            projectArtifact.getClassifier(),
-            artifactHandler
-        );
+        val myArtifact = getArtifact("tar.gz");
         val pull = new ResolveArtifact(mojo, this, mavenProject);
         try {
             pull.copy(myArtifact, new URI(targetLocation));

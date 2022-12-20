@@ -41,7 +41,7 @@ public class PackageMojo extends FlowmanMojo {
             getLog().info("");
             getLog().info("-- Packaging deployment '" + deployment.getName() + "'");
 
-            val project = createMavenProject(deployment, null);
+            val project = createMavenProject(deployment);
             val previousProject = mavenSession.getCurrentProject();
             try {
                 mavenSession.setCurrentProject(project);

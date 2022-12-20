@@ -30,6 +30,8 @@ import lombok.val;
 import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
@@ -176,10 +178,24 @@ abstract public class FlowmanMojo extends AbstractMojo {
         }
     }
 
-    protected MavenProject createMavenProject(Deployment deployment, Artifact outputArtifact) throws MojoFailureException, MojoExecutionException {
+    private Artifact createArtifact(Deployment deployment) {
+        val mavenProject = getMavenProject();
+        val projectArtifact = mavenProject.getArtifact();
+        ArtifactHandler artifactHandler = getArtifactHandlerManager().getArtifactHandler(deployment.getType());
+        return new DefaultArtifact(
+            projectArtifact.getGroupId(),
+            projectArtifact.getArtifactId(),
+            projectArtifact.getVersion(),
+            null,
+            deployment.getType(),
+            deployment.getName(),
+            artifactHandler
+        );
+    }
+
+    protected MavenProject createMavenProject(Deployment deployment) throws MojoFailureException, MojoExecutionException {
         val mojoProject = getMavenProject();
-        val mojoArtifact = mojoProject.getArtifact();
-        val artifact = outputArtifact != null ? outputArtifact : new AttachedArtifact(mojoArtifact, "jar", deployment.getName(), mojoArtifact.getArtifactHandler());
+        val artifact = createArtifact(deployment);
 
         val mojoBuild = mojoProject.getBuild();
         val build = mojoBuild.clone();

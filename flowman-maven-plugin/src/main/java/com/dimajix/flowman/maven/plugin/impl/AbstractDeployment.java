@@ -25,6 +25,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -49,6 +51,7 @@ abstract public class AbstractDeployment extends Deployment {
         this.mojo = mojo;
         this.log = mojo.getLog();
     }
+
 
     @Override
     public FlowmanSettings getEffectiveFlowmanSettings() throws MojoFailureException {
@@ -87,6 +90,21 @@ abstract public class AbstractDeployment extends Deployment {
     }
     protected File getOutputDirectory() {
         return new File(mojo.getCurrentMavenProject().getBuild().getOutputDirectory());
+    }
+
+    protected Artifact getArtifact(String type) {
+        val mavenProject = mojo.getCurrentMavenProject();
+        val projectArtifact = mavenProject.getArtifact();
+        ArtifactHandler artifactHandler = mojo.getArtifactHandlerManager().getArtifactHandler(type);
+        return new DefaultArtifact(
+            projectArtifact.getGroupId(),
+            projectArtifact.getArtifactId(),
+            projectArtifact.getVersion(),
+            null,
+            type,
+            projectArtifact.getClassifier(),
+            artifactHandler
+        );
     }
 
     protected Dependency toDependency(Artifact artifact) {

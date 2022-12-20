@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.dimajix.flowman.maven.plugin.tasks.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,14 +31,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.val;
 import lombok.var;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import static com.dimajix.flowman.maven.plugin.util.Jackson.newYAMLFactory;
 
+import com.dimajix.flowman.maven.plugin.tasks.BuildJar;
+import com.dimajix.flowman.maven.plugin.tasks.ProcessResources;
+import com.dimajix.flowman.maven.plugin.tasks.ResolveArtifact;
+import com.dimajix.flowman.maven.plugin.tasks.RunArtifacts;
+import com.dimajix.flowman.maven.plugin.tasks.ShadeJar;
 import com.dimajix.flowman.maven.plugin.util.Jackson;
 
 
@@ -48,6 +50,12 @@ public class JarDeployment extends AbstractDeployment {
     private String applicationLocation;
     @JsonProperty(value="projectLocation", required = false)
     private String projectLocation;
+
+    @Override
+    public String getType() {
+        return "jar";
+    }
+
 
     @Override
     public void build() throws MojoFailureException, MojoExecutionException {
@@ -151,17 +159,7 @@ public class JarDeployment extends AbstractDeployment {
     public void deploy() throws MojoFailureException, MojoExecutionException {
         // Pull and copy artifact
         val mavenProject = mojo.getCurrentMavenProject();
-        val projectArtifact = mavenProject.getArtifact();
-        ArtifactHandler artifactHandler = mojo.getArtifactHandlerManager().getArtifactHandler("jar");
-        val myArtifact = new DefaultArtifact(
-            projectArtifact.getGroupId(),
-            projectArtifact.getArtifactId(),
-            projectArtifact.getVersion(),
-            null,
-            "jar",
-            projectArtifact.getClassifier(),
-            artifactHandler
-        );
+        val myArtifact = getArtifact("jar");
         val pull = new ResolveArtifact(mojo, this, mavenProject);
         try {
             pull.copy(myArtifact, new URI(applicationLocation));
