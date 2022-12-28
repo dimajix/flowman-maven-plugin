@@ -21,8 +21,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.val;
 import lombok.var;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -121,22 +125,28 @@ public class JarDeployment extends AbstractDeployment {
         val mavenProject = mojo.getCurrentMavenProject();
         val buildDirectory = getBuildDirectory();
         val outputDirectory = getOutputDirectory();
+        val flowmanDirectory = new File("META-INF/flowman");
+        List<File> exclusions = StringUtils.isEmpty(projectLocation) ?
+            Collections.emptyList() :
+            Stream.concat(mojo.getDescriptor().getProjects().stream(), mojo.getDescriptor().getResources().stream()).map(src ->
+                new File(flowmanDirectory, src.toString())
+            ).collect(Collectors.toList());
 
         // 2. Build Jar
         val jar = new BuildJar(mojo, this, mavenProject);
-        jar.buildJar(outputDirectory, buildDirectory);
+        jar.buildJar(outputDirectory, buildDirectory, exclusions);
 
         // 3. Shade Jar
         val shade = new ShadeJar(mojo, this, mavenProject);
         shade.shadeJar("com.dimajix.flowman.tools.exec.Driver");
 
-        val artifactFile = mavenProject.getArtifact().getFile();
-        mojo.attachArtifact(artifactFile, "jar", getName());
+        val artifact = mavenProject.getArtifact();
+        mojo.attachArtifact(artifact.getFile(), artifact.getType(), getName());
 
         val log = mojo.getLog();
         log.info("");
-        log.info(" > Run 'flowexec' via 'spark-submit " + artifactFile.getName() + " -f <project-directory> <flowman-command>'");
-        log.info(" > Run 'flowshell' via 'spark-submit --class com.dimajix.flowman.tools.shell.Shell " + artifactFile.getName() + " -f <project-directory>'");
+        log.info(" > Run 'flowexec' via 'spark-submit " + artifact.getFile().getName() + " -f <project-directory> <flowman-command>'");
+        log.info(" > Run 'flowshell' via 'spark-submit --class com.dimajix.flowman.tools.shell.Shell " + artifact.getFile().getName() + " -f <project-directory>'");
     }
 
     @Override
@@ -157,15 +167,16 @@ public class JarDeployment extends AbstractDeployment {
 
     @Override
     public void deploy() throws MojoFailureException, MojoExecutionException {
-        // Pull and copy artifact
-        val mavenProject = mojo.getCurrentMavenProject();
-        val myArtifact = getArtifact("jar");
-        val pull = new ResolveArtifact(mojo, this, mavenProject);
-        try {
-            pull.copy(myArtifact, new URI(applicationLocation));
-        }
-        catch(URISyntaxException ex) {
-            throw new MojoExecutionException(ex);
+        if (StringUtils.isNotEmpty(applicationLocation)) {
+            // Pull and copy artifact
+            val mavenProject = mojo.getCurrentMavenProject();
+            val myArtifact = getArtifact("jar");
+            val pull = new ResolveArtifact(mojo, this, mavenProject);
+            try {
+                pull.copy(myArtifact, new URI(applicationLocation));
+            } catch (URISyntaxException ex) {
+                throw new MojoExecutionException(ex);
+            }
         }
     }
 

@@ -59,6 +59,11 @@ public abstract class Deployment {
     @JsonProperty(value="execution", required = false)
     protected ExecutionSettings executionSettings = new ExecutionSettings();
 
+    @Getter
+    @Setter
+    @JsonProperty(value="skipTests", required = false)
+    protected boolean skipTests = false;
+
     abstract public String getType();
 
 

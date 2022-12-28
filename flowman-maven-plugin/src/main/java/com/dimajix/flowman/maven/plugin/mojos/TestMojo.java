@@ -45,17 +45,22 @@ public class TestMojo extends FlowmanMojo {
 
             for (var deployment : deployments) {
                 getLog().info("");
-                getLog().info("-- Testing deployment '" + deployment.getName() + "'");
 
-                val mavenProject = createMavenProject(deployment);
-                val previousProject = mavenSession.getCurrentProject();
-                try {
-                    mavenSession.setCurrentProject(mavenProject);
-                    File flow = project != null ? getFlowmanProject(this.project) : null;
-                    deployment.test(flow);
+                if (skipTests || deployment.isSkipTests()) {
+                    getLog().info("-- Skipping test deployment '" + deployment.getName() + "'");
                 }
-                finally {
-                    mavenSession.setCurrentProject(previousProject);
+                else {
+                    getLog().info("-- Testing deployment '" + deployment.getName() + "'");
+
+                    val mavenProject = createMavenProject(deployment);
+                    val previousProject = mavenSession.getCurrentProject();
+                    try {
+                        mavenSession.setCurrentProject(mavenProject);
+                        File flow = project != null ? getFlowmanProject(this.project) : null;
+                        deployment.test(flow);
+                    } finally {
+                        mavenSession.setCurrentProject(previousProject);
+                    }
                 }
             }
         }

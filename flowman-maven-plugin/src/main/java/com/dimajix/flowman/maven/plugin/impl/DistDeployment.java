@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.val;
 import lombok.var;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -281,15 +282,16 @@ public class DistDeployment extends AbstractDeployment {
 
     @Override
     public void deploy() throws MojoFailureException, MojoExecutionException {
-        // Pull and copy artifact
-        val mavenProject = mojo.getCurrentMavenProject();
-        val myArtifact = getArtifact("tar.gz");
-        val pull = new ResolveArtifact(mojo, this, mavenProject);
-        try {
-            pull.copy(myArtifact, new URI(targetLocation));
-        }
-        catch(URISyntaxException ex) {
-            throw new MojoExecutionException(ex);
+        if (StringUtils.isNotEmpty(targetLocation)) {
+            // Pull and copy artifact
+            val mavenProject = mojo.getCurrentMavenProject();
+            val myArtifact = getArtifact("tar.gz");
+            val pull = new ResolveArtifact(mojo, this, mavenProject);
+            try {
+                pull.copy(myArtifact, new URI(targetLocation));
+            } catch (URISyntaxException ex) {
+                throw new MojoExecutionException(ex);
+            }
         }
     }
 

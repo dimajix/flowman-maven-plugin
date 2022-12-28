@@ -37,7 +37,7 @@ public class BuildJar extends Task {
         mavenProject.getModel().setPackaging("jar");
     }
 
-    public void buildJar(File sourceDirectory, File outputDirectory) throws MojoExecutionException {
+    public void buildJar(File sourceDirectory, File outputDirectory, List<File> exclusions) throws MojoExecutionException {
         executeMojo(
             plugin(
                 groupId("org.apache.maven.plugins"),
@@ -47,7 +47,11 @@ public class BuildJar extends Task {
             goal("jar"),
             configuration(
                 element(name("classesDirectory"), sourceDirectory.toString()),
-                element(name("outputDirectory"), outputDirectory.toString())
+                element(name("outputDirectory"), outputDirectory.toString()),
+                element(name("excludes"), exclusions.stream().map(src ->
+                        element("exclude", new File(src, "**").toString())
+                    ).toArray(Element[]::new)
+                )
             ),
             executionEnvironment(
                 mavenProject,
