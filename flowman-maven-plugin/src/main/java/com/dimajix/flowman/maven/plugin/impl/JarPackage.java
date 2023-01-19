@@ -19,8 +19,6 @@ package com.dimajix.flowman.maven.plugin.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,17 +41,14 @@ import static com.dimajix.flowman.maven.plugin.util.Jackson.newYAMLFactory;
 
 import com.dimajix.flowman.maven.plugin.tasks.BuildJar;
 import com.dimajix.flowman.maven.plugin.tasks.ProcessResources;
-import com.dimajix.flowman.maven.plugin.tasks.ResolveArtifact;
 import com.dimajix.flowman.maven.plugin.tasks.RunArtifacts;
 import com.dimajix.flowman.maven.plugin.tasks.ShadeJar;
 import com.dimajix.flowman.maven.plugin.util.Jackson;
 
 
-public class JarDeployment extends AbstractDeployment {
-    @JsonProperty(value="applicationLocation", required = true)
-    private String applicationLocation;
-    @JsonProperty(value="projectLocation", required = false)
-    private String projectLocation;
+public class JarPackage extends AbstractPackage {
+    @JsonProperty(value="includeProjects", required = false)
+    private boolean includeProjects = true;
 
     @Override
     public String getType() {
@@ -68,7 +63,7 @@ public class JarDeployment extends AbstractDeployment {
         val outputDirectory = new File(getOutputDirectory(), "META-INF/flowman");
 
         // 1. Process sources
-        val resources = new ProcessResources(mojo, this, mavenProject);
+        val resources = new ProcessResources(mojo, mavenProject);
         resources.processResources(mojo.getDescriptor().getProjects(), outputDirectory);
         resources.processResources(mojo.getDescriptor().getResources(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
@@ -113,7 +108,7 @@ public class JarDeployment extends AbstractDeployment {
         val projectDirectories = project != null ? java.util.Collections.singletonList(project) : mojo.getDescriptor().getProjects();
 
         // Execute Tests
-        val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
+        val run = new RunArtifacts(mojo, mavenProject, null, confDirectory, getEffectiveExecutionSettings());
         for (var flow : projectDirectories) {
             val projectDirectory = new File(outputDirectory, flow.getPath());
             run.runTests(projectDirectory);
@@ -125,20 +120,19 @@ public class JarDeployment extends AbstractDeployment {
         val mavenProject = mojo.getCurrentMavenProject();
         val buildDirectory = getBuildDirectory();
         val outputDirectory = getOutputDirectory();
-        val flowmanDirectory = new File("META-INF/flowman");
-        List<File> exclusions = StringUtils.isEmpty(projectLocation) ?
+        List<File> exclusions = includeProjects ?
             Collections.emptyList() :
             Stream.concat(mojo.getDescriptor().getProjects().stream(), mojo.getDescriptor().getResources().stream()).map(src ->
-                new File(flowmanDirectory, src.toString())
+                new File("META-INF/flowman", src.toString())
             ).collect(Collectors.toList());
 
         // 2. Build Jar
-        val jar = new BuildJar(mojo, this, mavenProject);
+        val jar = new BuildJar(mojo, mavenProject);
         jar.buildJar(outputDirectory, buildDirectory, exclusions);
 
         // 3. Shade Jar
-        val shade = new ShadeJar(mojo, this, mavenProject);
-        shade.shadeJar("com.dimajix.flowman.tools.exec.Driver");
+        val shade = new ShadeJar(mojo, mavenProject, getEffectiveBuildSettings());
+        shade.shadeJar("com.dimajix.flowman.tools.exec.Driver", getName());
 
         val artifact = mavenProject.getArtifact();
         mojo.attachArtifact(artifact.getFile(), artifact.getType(), getName());
@@ -156,28 +150,13 @@ public class JarDeployment extends AbstractDeployment {
         val projectDirectory = new File(outputDirectory, project.getPath());
         val confDirectory = new File(outputDirectory, "conf");
 
-        val run = new RunArtifacts(mojo, this, mavenProject, null, confDirectory);
+        val run = new RunArtifacts(mojo, mavenProject, null, confDirectory, getEffectiveExecutionSettings());
         run.runShell(projectDirectory);
     }
 
     @Override
     public void push() throws MojoFailureException, MojoExecutionException {
         // The jar will be pushed to Nexus via the root Maven project
-    }
-
-    @Override
-    public void deploy() throws MojoFailureException, MojoExecutionException {
-        if (StringUtils.isNotEmpty(applicationLocation)) {
-            // Pull and copy artifact
-            val mavenProject = mojo.getCurrentMavenProject();
-            val myArtifact = getArtifact("jar");
-            val pull = new ResolveArtifact(mojo, this, mavenProject);
-            try {
-                pull.copy(myArtifact, new URI(applicationLocation));
-            } catch (URISyntaxException ex) {
-                throw new MojoExecutionException(ex);
-            }
-        }
     }
 
     @Override

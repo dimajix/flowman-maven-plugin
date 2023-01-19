@@ -31,22 +31,22 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo( name = "push", threadSafe = true, defaultPhase = LifecyclePhase.DEPLOY)
 public class PushMojo extends FlowmanMojo {
-    @Parameter( property="flowman.deployment")
-    protected String deployment;
+    @Parameter( property="flowman.package")
+    protected String pkg;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        val deployments = StringUtils.isEmpty(deployment) ? getDeployments() : Collections.singletonList(getDeployment(deployment));
+        val packages = StringUtils.isEmpty(pkg) ? getPackages() : Collections.singletonList(getPackage(pkg));
 
-        for (var deployment : deployments) {
+        for (var pkg : packages) {
             getLog().info("");
-            getLog().info("-- Pushing deployment '" + deployment.getName() + "'");
+            getLog().info("-- Pushing package '" + pkg.getName() + "'");
 
-            val project = createMavenProject(deployment);
+            val project = createMavenProject(pkg);
             val previousProject = mavenSession.getCurrentProject();
             try {
                 mavenSession.setCurrentProject(project);
-                deployment.push();
+                pkg.push();
             }
             finally {
                 mavenSession.setCurrentProject(previousProject);

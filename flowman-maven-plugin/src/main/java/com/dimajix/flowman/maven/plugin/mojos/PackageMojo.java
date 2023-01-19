@@ -30,22 +30,22 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo( name = "package", threadSafe = true, defaultPhase = LifecyclePhase.PACKAGE)
 public class PackageMojo extends FlowmanMojo {
-    @Parameter( property="flowman.deployment")
-    protected String deployment;
+    @Parameter( property="flowman.package")
+    protected String pkg;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        val deployments = StringUtils.isEmpty(deployment) ? getDeployments() : Collections.singletonList(getDeployment(deployment));
+        val packages = StringUtils.isEmpty(pkg) ? getPackages() : Collections.singletonList(getPackage(pkg));
 
-        for (var deployment : deployments) {
+        for (var pkg : packages) {
             getLog().info("");
-            getLog().info("-- Packaging deployment '" + deployment.getName() + "'");
+            getLog().info("-- Packaging package '" + pkg.getName() + "'");
 
-            val project = createMavenProject(deployment);
+            val project = createMavenProject(pkg);
             val previousProject = mavenSession.getCurrentProject();
             try {
                 mavenSession.setCurrentProject(project);
-                deployment.pack();
+                pkg.pack();
             }
             finally {
                 mavenSession.setCurrentProject(previousProject);

@@ -16,7 +16,6 @@
 
 package com.dimajix.flowman.maven.plugin.tasks;
 
-import java.io.File;
 import java.util.LinkedList;
 import java.util.stream.Collectors;
 
@@ -27,18 +26,21 @@ import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
-import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.BuildSettings;
+import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
-import com.dimajix.flowman.maven.plugin.util.Collections;
 
 
 public class ShadeJar extends Task {
-    public ShadeJar(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
-        super(mojo, deployment, mavenProject);
+    private final BuildSettings buildSettings;
+
+    public ShadeJar(FlowmanMojo mojo, MavenProject mavenProject, BuildSettings buildSettings) throws MojoFailureException {
+        super(mojo, mavenProject);
+        this.buildSettings = buildSettings;
         mavenProject.getModel().setPackaging("jar");
     }
 
-    public void shadeJar(String mainClass) throws MojoExecutionException, MojoFailureException {
+    public void shadeJar(String mainClass, String classifier) throws MojoExecutionException, MojoFailureException {
         // Set and resolve dependencies
         resolveDependencies();
 
@@ -48,7 +50,7 @@ public class ShadeJar extends Task {
             .collect(Collectors.toSet());
         mavenProject.setArtifacts(newDeps);
 
-        val exclusions = new LinkedList<>(deployment.getEffectiveBuildSettings().getExclusions());
+        val exclusions = new LinkedList<>(buildSettings.getExclusions());
         exclusions.add("com.dimajix.flowman:flowman-spark-dependencies:*");
 
         executeMojo(
@@ -59,7 +61,7 @@ public class ShadeJar extends Task {
             ),
             goal("shade"),
             configuration(
-                element(name("shadedClassifierName"), deployment.getName()),
+                element(name("shadedClassifierName"), classifier),
                 element(name("outputDirectory"), buildDirectory.toString()),
                 element(name("createDependencyReducedPom"), "false"),
                 element(name("keepDependenciesWithProvidedScope"), "false"),

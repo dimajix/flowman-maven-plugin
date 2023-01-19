@@ -26,13 +26,13 @@ import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
-import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 
 public class UnpackDependencies extends Task {
-    public UnpackDependencies(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
-        super(mojo, deployment, mavenProject);
+    public UnpackDependencies(FlowmanMojo mojo, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, mavenProject);
     }
 
     public void unpack(Collection<Artifact> artifacts, File outputDirectory) throws MojoExecutionException {

@@ -25,9 +25,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
-import lombok.val;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
+
 
 @Data
 public class Descriptor {
@@ -46,12 +44,20 @@ public class Descriptor {
     @JsonProperty(value="resources", required = false)
     private List<File> resources = Collections.emptyList();
 
+    @JsonDeserialize(converter= PackageNameResolver.class)
+    @JsonProperty(value="packages", required = true)
+    private Map<String, Package> packages = Collections.emptyMap();
+
     @JsonDeserialize(converter= DeploymentNameResolver.class)
     @JsonProperty(value="deployments", required = true)
-    private Map<String,Deployment> deployments = Collections.emptyMap();
+    private Map<String, Deployment> deployments = Collections.emptyMap();
 
 
     public List<Deployment> getDeployments() {
         return deployments.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList());
+    }
+
+    public List<Package> getPackages() {
+        return packages.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList());
     }
 }

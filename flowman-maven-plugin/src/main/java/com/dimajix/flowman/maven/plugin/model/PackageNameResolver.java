@@ -22,9 +22,9 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 import lombok.val;
 import lombok.var;
 
-public class DeploymentNameResolver extends StdConverter<Map<String, Deployment>, Map<String, Deployment>> {
+public class PackageNameResolver extends StdConverter<Map<String, Package>, Map<String, Package>> {
     @Override
-    public Map<String, Deployment> convert(Map<String, Deployment> value) {
+    public Map<String, Package> convert(Map<String, Package> value) {
         for (var entry : value.entrySet()) {
             val name = entry.getKey();
             val deployment = entry.getValue();

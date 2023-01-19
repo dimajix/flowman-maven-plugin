@@ -51,15 +51,13 @@ import com.dimajix.flowman.maven.plugin.tasks.assembly.FileSet;
 import com.dimajix.flowman.maven.plugin.util.Jackson;
 
 
-public class DistDeployment extends AbstractDeployment {
+public class DistPackage extends AbstractPackage {
     @JsonProperty(value="baseDirectory", required = false)
     private String baseDirectory;
-    @JsonProperty(value="targetLocation", required = false)
-    private String targetLocation;
 
     @Override
     public String getType() {
-        return "pom";
+        return "tar.gz";
     }
 
     @Override
@@ -71,7 +69,7 @@ public class DistDeployment extends AbstractDeployment {
 
         // 1. Unpack Flowman
         val dist = flowmanSettings.resolveDist();
-        val unpack = new UnpackDependencies(mojo, this, mavenProject);
+        val unpack = new UnpackDependencies(mojo, mavenProject);
         unpack.unpack(Collections.singletonList(dist), buildDirectory);
 
         // 2. Unpack and install additional plugins
@@ -82,7 +80,7 @@ public class DistDeployment extends AbstractDeployment {
         }
 
         // 3. Process sources
-        val resources = new ProcessResources(mojo, this, mavenProject);
+        val resources = new ProcessResources(mojo, mavenProject);
         resources.processResources(mojo.getDescriptor().getProjects(), outputDirectory);
         resources.processResources(mojo.getDescriptor().getResources(), outputDirectory);
         resources.processResources(new File("conf"), outputDirectory);
@@ -138,7 +136,7 @@ public class DistDeployment extends AbstractDeployment {
         val projectDirectories = project != null ? java.util.Collections.singletonList(project) : mojo.getDescriptor().getProjects();
 
         // 3. Execute Tests
-        val run = new RunArtifacts(mojo, this, mavenProject, homeDirectory, confDirectory);
+        val run = new RunArtifacts(mojo, mavenProject, homeDirectory, confDirectory, getEffectiveExecutionSettings());
         for (var flow : projectDirectories) {
             val projectDirectory = new File(outputDirectory, flow.getPath());
             run.runTests(projectDirectory);
@@ -253,10 +251,11 @@ public class DistDeployment extends AbstractDeployment {
         );
         descriptor.setFileSets(fileSets);
 
-        val assembler = new AssembleDist(mojo, this, mavenProject);
+        val assembler = new AssembleDist(mojo, mavenProject);
         assembler.assemble(descriptor, mavenProject.getArtifactId() + "-" + mavenProject.getVersion());
 
-        mavenProject.getAttachedArtifacts().forEach(a -> mojo.attachArtifact(a.getFile(), a.getType(), a.getClassifier()));
+        // Attaching is not required any more, since the assembly plugin now simply replaces the main artifact
+        //mavenProject.getAttachedArtifacts().forEach(a -> mojo.attachArtifact(a.getFile(), a.getType(), a.getClassifier()));
     }
 
     @Override
@@ -271,28 +270,13 @@ public class DistDeployment extends AbstractDeployment {
         // TODO: This assumes a certain directory structure in the tar.gz
         val homeDirectory = new File(buildDirectory, "flowman-" + flowmanSettings.getVersion());
 
-        val run = new RunArtifacts(mojo, this, mavenProject, homeDirectory, confDirectory);
+        val run = new RunArtifacts(mojo, mavenProject, homeDirectory, confDirectory, getEffectiveExecutionSettings());
         run.runShell(projectDirectory);
     }
 
     @Override
     public void push() throws MojoFailureException, MojoExecutionException {
         // The dist will be pushed to Nexus via the root Maven project
-    }
-
-    @Override
-    public void deploy() throws MojoFailureException, MojoExecutionException {
-        if (StringUtils.isNotEmpty(targetLocation)) {
-            // Pull and copy artifact
-            val mavenProject = mojo.getCurrentMavenProject();
-            val myArtifact = getArtifact("tar.gz");
-            val pull = new ResolveArtifact(mojo, this, mavenProject);
-            try {
-                pull.copy(myArtifact, new URI(targetLocation));
-            } catch (URISyntaxException ex) {
-                throw new MojoExecutionException(ex);
-            }
-        }
     }
 
     @Override

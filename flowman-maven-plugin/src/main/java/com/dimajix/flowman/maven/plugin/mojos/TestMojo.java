@@ -31,8 +31,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo( name = "test", threadSafe = true, defaultPhase = LifecyclePhase.TEST)
 public class TestMojo extends FlowmanMojo {
-    @Parameter( property="flowman.deployment")
-    protected String deployment;
+    @Parameter( property="flowman.package")
+    protected String pkg;
     @Parameter( property="flowman.project")
     protected String project;
     @Parameter( property="skipTests")
@@ -41,23 +41,23 @@ public class TestMojo extends FlowmanMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (!skipTests) {
-            val deployments = StringUtils.isEmpty(deployment) ? getDeployments() : Collections.singletonList(getDeployment(deployment));
+            val packages = StringUtils.isEmpty(pkg) ? getPackages() : Collections.singletonList(getPackage(pkg));
 
-            for (var deployment : deployments) {
+            for (var pkg : packages) {
                 getLog().info("");
 
-                if (skipTests || deployment.isSkipTests()) {
-                    getLog().info("-- Skipping test deployment '" + deployment.getName() + "'");
+                if (skipTests || pkg.isSkipTests()) {
+                    getLog().info("-- Skipping test package '" + pkg.getName() + "'");
                 }
                 else {
-                    getLog().info("-- Testing deployment '" + deployment.getName() + "'");
+                    getLog().info("-- Testing package '" + pkg.getName() + "'");
 
-                    val mavenProject = createMavenProject(deployment);
+                    val mavenProject = createMavenProject(pkg);
                     val previousProject = mavenSession.getCurrentProject();
                     try {
                         mavenSession.setCurrentProject(mavenProject);
                         File flow = project != null ? getFlowmanProject(this.project) : null;
-                        deployment.test(flow);
+                        pkg.test(flow);
                     } finally {
                         mavenSession.setCurrentProject(previousProject);
                     }

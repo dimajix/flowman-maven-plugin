@@ -40,15 +40,7 @@ public class DeployMojo extends FlowmanMojo {
             getLog().info("");
             getLog().info("-- Deploying deployment '" + deployment.getName() + "'");
 
-            val project = createMavenProject(deployment);
-            val previousProject = mavenSession.getCurrentProject();
-            try {
-                mavenSession.setCurrentProject(project);
-                deployment.deploy();
-            }
-            finally {
-                mavenSession.setCurrentProject(previousProject);
-            }
+            deployment.deploy();
         }
     }
 }

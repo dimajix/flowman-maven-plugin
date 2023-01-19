@@ -30,8 +30,6 @@ import lombok.val;
 import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
@@ -47,7 +45,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectDependenciesResolver;
-import org.apache.maven.project.artifact.AttachedArtifact;
 import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResolver;
 import org.apache.maven.shared.transfer.dependencies.resolve.DependencyResolver;
 import org.eclipse.aether.impl.ArtifactDescriptorReader;
@@ -55,9 +52,12 @@ import org.eclipse.aether.resolution.ArtifactDescriptorException;
 import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
 import org.eclipse.aether.resolution.ArtifactDescriptorResult;
 
+import com.dimajix.flowman.maven.plugin.interpolation.StringInterpolator;
 import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.model.Descriptor;
 import com.dimajix.flowman.maven.plugin.model.ObjectMapper;
+
 
 abstract public class FlowmanMojo extends AbstractMojo {
     /**
@@ -130,7 +130,11 @@ abstract public class FlowmanMojo extends AbstractMojo {
     public Descriptor getDescriptor() throws MojoFailureException {
         if (cachedDescriptor == null) {
             try {
-                cachedDescriptor = ObjectMapper.read(deploymentDescriptor, Descriptor.class);
+                val interpolator = StringInterpolator.createInterpolator(mavenSession, mavenProject);
+                cachedDescriptor = ObjectMapper.read(deploymentDescriptor, Descriptor.class, interpolator);
+                for (var pkg : cachedDescriptor.getPackages()) {
+                    pkg.init(this);
+                }
                 for (var deployment : cachedDescriptor.getDeployments()) {
                     deployment.init(this);
                 }
@@ -146,10 +150,27 @@ abstract public class FlowmanMojo extends AbstractMojo {
         return mavenSession.getCurrentProject();
     }
 
+    public List<Package> getPackages() throws MojoFailureException {
+        return getDescriptor().getPackages();
+    }
+    public Package getPackage(String name) throws MojoExecutionException, MojoFailureException {
+        val pkgs = getDescriptor().getPackages();
+        if (StringUtils.isEmpty(name)) {
+            return pkgs.iterator().next();
+        }
+        else {
+            val result = pkgs.stream().filter(d -> d.getName().equals(name)).findFirst();
+            if (!result.isPresent()) {
+                throw new MojoExecutionException("Flowman package '" + name + "' found. Please check your 'deployment.yml'.");
+            }
+            return result.get();
+        }
+    }
+
+
     public List<Deployment> getDeployments() throws MojoFailureException {
         return getDescriptor().getDeployments();
     }
-
     public Deployment getDeployment(String name) throws MojoExecutionException, MojoFailureException {
         val deployments = getDescriptor().getDeployments();
         if (StringUtils.isEmpty(name)) {
@@ -178,29 +199,14 @@ abstract public class FlowmanMojo extends AbstractMojo {
         }
     }
 
-    private Artifact createArtifact(Deployment deployment) {
-        val mavenProject = getMavenProject();
-        val projectArtifact = mavenProject.getArtifact();
-        ArtifactHandler artifactHandler = getArtifactHandlerManager().getArtifactHandler(deployment.getType());
-        return new DefaultArtifact(
-            projectArtifact.getGroupId(),
-            projectArtifact.getArtifactId(),
-            projectArtifact.getVersion(),
-            null,
-            deployment.getType(),
-            deployment.getName(),
-            artifactHandler
-        );
-    }
-
-    protected MavenProject createMavenProject(Deployment deployment) throws MojoFailureException, MojoExecutionException {
+    protected MavenProject createMavenProject(Package pkg) throws MojoFailureException, MojoExecutionException {
         val mojoProject = getMavenProject();
-        val artifact = createArtifact(deployment);
+        val artifact = pkg.getArtifact();
 
         val mojoBuild = mojoProject.getBuild();
         val build = mojoBuild.clone();
-        build.setDirectory(new File(buildDirectory, deployment.getName()).toString());
-        build.setOutputDirectory(new File(new File(buildDirectory, deployment.getName()), "resources").toString());
+        build.setDirectory(new File(buildDirectory, pkg.getName()).toString());
+        build.setOutputDirectory(new File(new File(buildDirectory, pkg.getName()), "resources").toString());
 
         val mavenProject = new MavenProject(mojoProject.getModel().clone());
         mavenProject.setOriginalModel(mojoProject.getModel());
@@ -211,11 +217,11 @@ abstract public class FlowmanMojo extends AbstractMojo {
         mavenProject.setPluginArtifactRepositories(mojoProject.getPluginArtifactRepositories());
         mavenProject.setDistributionManagement(mojoProject.getDistributionManagement());
 
-        val flowmanSettings = deployment.getEffectiveFlowmanSettings();
+        val flowmanSettings = pkg.getEffectiveFlowmanSettings();
         val parent0 = flowmanSettings.resolveParent();
         importDependencyManagement(mavenProject, parent0);
 
-        val dependencies = deployment.getDependencies();
+        val dependencies = pkg.getDependencies();
         mavenProject.setDependencies(dependencies);
 
         return mavenProject;

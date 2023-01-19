@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.stream.Collectors;
 
 import lombok.val;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -29,24 +28,30 @@ import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
-import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.ExecutionSettings;
+import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 import com.dimajix.flowman.maven.plugin.util.Collections;
 
 
 public class RunArtifacts extends Task {
-    private File homeDirectory;
-    private File confDirectory;
+    private final File homeDirectory;
+    private final File confDirectory;
+    private final ExecutionSettings executionSettings;
 
 
-    public RunArtifacts(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
-        super(mojo, deployment, mavenProject);
+    public RunArtifacts(FlowmanMojo mojo, MavenProject mavenProject, ExecutionSettings executionSettings) throws MojoFailureException {
+        super(mojo, mavenProject);
+        this.confDirectory = null;
+        this.homeDirectory = null;
+        this.executionSettings = executionSettings;
     }
 
-    public RunArtifacts(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject, File homeDirectory, File confDirectory) throws MojoFailureException {
-        super(mojo, deployment, mavenProject);
+    public RunArtifacts(FlowmanMojo mojo, MavenProject mavenProject, File homeDirectory, File confDirectory, ExecutionSettings executionSettings) throws MojoFailureException {
+        super(mojo, mavenProject);
         this.homeDirectory = homeDirectory;
         this.confDirectory = confDirectory;
+        this.executionSettings = executionSettings;
     }
 
     public void runTests(File projectDirectory) throws MojoExecutionException, MojoFailureException {
@@ -58,8 +63,6 @@ public class RunArtifacts extends Task {
     }
 
     public void run(String mainClass, File projectDirectory, String... args) throws MojoExecutionException, MojoFailureException {
-        val executionSettings = deployment.getEffectiveExecutionSettings();
-
         // Construct classpath
         val depres = resolveDependencies();
         val classPath = new StringBuffer();

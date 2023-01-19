@@ -20,19 +20,18 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
-import lombok.val;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
-import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 public class ProcessResources extends Task {
-    public ProcessResources(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
-        super(mojo, deployment, mavenProject);
+    public ProcessResources(FlowmanMojo mojo, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, mavenProject);
     }
 
     public void processResources(File sources, File outputDirectory) throws MojoExecutionException {

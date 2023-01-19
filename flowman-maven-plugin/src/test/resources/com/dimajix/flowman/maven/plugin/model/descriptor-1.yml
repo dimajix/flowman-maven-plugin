@@ -30,7 +30,7 @@ execution:
     - x=y
 
 
-deployments:
+packages:
   local:
     kind: fatjar
     # Deployment specific Maven build settings, will be merged with global 'build' settings

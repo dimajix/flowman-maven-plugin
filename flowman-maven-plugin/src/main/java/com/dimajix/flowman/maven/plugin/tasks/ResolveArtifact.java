@@ -33,16 +33,16 @@ import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResolver;
 import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResolverException;
 
 import com.dimajix.flowman.maven.fs.FileSystem;
-import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 public class ResolveArtifact extends Task {
-    private Log log;
-    private ArtifactResolver artifactResolver;
-    private ArtifactHandlerManager artifactHandlerManager;
+    private final Log log;
+    private final ArtifactResolver artifactResolver;
+    private final ArtifactHandlerManager artifactHandlerManager;
 
-    public ResolveArtifact(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
-        super(mojo, deployment, mavenProject);
+    public ResolveArtifact(FlowmanMojo mojo, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, mavenProject);
 
         this.log = mojo.getLog();
         this.artifactResolver = mojo.getArtifactResolver();

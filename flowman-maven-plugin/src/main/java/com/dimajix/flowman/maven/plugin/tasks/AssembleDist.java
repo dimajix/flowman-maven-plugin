@@ -27,15 +27,15 @@ import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
-import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 import com.dimajix.flowman.maven.plugin.tasks.assembly.AssemblyDescriptor;
 import com.dimajix.flowman.maven.plugin.util.Jackson;
 
 
 public class AssembleDist extends Task {
-    public AssembleDist(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
-        super(mojo, deployment, mavenProject);
+    public AssembleDist(FlowmanMojo mojo, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, mavenProject);
     }
 
     public void assemble(AssemblyDescriptor assemblyDescriptor, String finalName) throws MojoExecutionException {
@@ -56,6 +56,8 @@ public class AssembleDist extends Task {
             ),
             goal("single"),
             configuration(
+                element(name("attach"), "false"),
+                element(name("appendAssemblyId"), "false"),
                 element(name("tarLongFileMode"), "posix"),
                 element(name("finalName"), finalName),
                 element(name("descriptors"),

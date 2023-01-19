@@ -19,21 +19,19 @@ package com.dimajix.flowman.maven.plugin.tasks;
 import java.io.File;
 import java.util.List;
 
-import lombok.val;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
-import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
 
 public class BuildJar extends Task {
-    public BuildJar(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
-        super(mojo, deployment, mavenProject);
+    public BuildJar(FlowmanMojo mojo, MavenProject mavenProject) throws MojoFailureException {
+        super(mojo, mavenProject);
         mavenProject.getModel().setPackaging("jar");
     }
 

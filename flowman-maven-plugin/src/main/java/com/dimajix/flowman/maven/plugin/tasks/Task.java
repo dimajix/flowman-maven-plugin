@@ -20,7 +20,7 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.LocalRepositoryManager;
 
 import com.dimajix.flowman.maven.plugin.model.BuildSettings;
-import com.dimajix.flowman.maven.plugin.model.Deployment;
+import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.model.FlowmanSettings;
 import com.dimajix.flowman.maven.plugin.mojos.FlowmanMojo;
 
@@ -29,25 +29,18 @@ public abstract class Task {
     protected MavenProject mavenProject;
     protected MavenSession mavenSession;
     protected BuildPluginManager pluginManager;
-    ProjectDependenciesResolver dependenciesResolver;
-
-    protected Deployment deployment;
+    protected ProjectDependenciesResolver dependenciesResolver;
 
     protected File buildDirectory;
-    protected FlowmanSettings flowmanSettings;
-    protected BuildSettings buildSettings;
 
 
-    public Task(FlowmanMojo mojo, Deployment deployment, MavenProject mavenProject) throws MojoFailureException {
-        this.deployment = deployment;
+    public Task(FlowmanMojo mojo, MavenProject mavenProject) {
         this.mavenProject = mavenProject;
         this.mavenSession = mojo.getMavenSession();
         this.pluginManager = mojo.getPluginManager();
         this.dependenciesResolver = mojo.getDependenciesResolver();
 
         this.buildDirectory = new File(mavenProject.getBuild().getDirectory());
-        this.flowmanSettings = deployment.getEffectiveFlowmanSettings();
-        this.buildSettings = deployment.getEffectiveBuildSettings();
     }
 
     public Artifact getArtifact() {

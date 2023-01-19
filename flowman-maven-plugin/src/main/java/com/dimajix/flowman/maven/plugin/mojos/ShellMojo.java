@@ -25,23 +25,23 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo( name = "shell", threadSafe = false, requiresProject = true)
 public class ShellMojo extends FlowmanMojo {
-    @Parameter(property="flowman.deployment")
-    protected String deployment;
+    @Parameter(property="flowman.package")
+    protected String pkg;
     @Parameter(property="flowman.project")
     protected String project;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        val deployment = getDeployment(this.deployment);
+        val pkg = getPackage(this.pkg);
         val flow = getFlowmanProject(this.project);
         getLog().info("");
-        getLog().info("-- Running shell for deployment '" + deployment.getName() + "'");
+        getLog().info("-- Running shell for package '" + pkg.getName() + "'");
 
-        val project = createMavenProject(deployment);
+        val project = createMavenProject(pkg);
         val previousProject = mavenSession.getCurrentProject();
         try {
             mavenSession.setCurrentProject(project);
-            deployment.shell(flow);
+            pkg.shell(flow);
         }
         finally {
             mavenSession.setCurrentProject(previousProject);

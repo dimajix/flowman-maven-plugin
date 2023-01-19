@@ -18,18 +18,22 @@ package com.dimajix.flowman.maven.plugin.model;
 
 import com.google.common.io.Resources;
 import lombok.val;
+import org.codehaus.plexus.interpolation.fixed.FixedStringSearchInterpolator;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.dimajix.flowman.maven.plugin.interpolation.StringInterpolator;
+
 
 public class DescriptorTest {
     @Test
     public void testDeserialization() throws IOException {
+        val intp = FixedStringSearchInterpolator.create();
         val url = Resources.getResource(DescriptorTest.class, "descriptor-1.yml");
-        val dep = ObjectMapper.read(url, Descriptor.class);
+        val dep = ObjectMapper.read(url, Descriptor.class, intp);
 
         assertThat(dep.getFlowmanSettings().getVersion()).isEqualTo("0.28.0");
     }
