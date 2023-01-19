@@ -254,8 +254,8 @@ public class DistPackage extends AbstractPackage {
         val assembler = new AssembleDist(mojo, mavenProject);
         assembler.assemble(descriptor, mavenProject.getArtifactId() + "-" + mavenProject.getVersion());
 
-        // Attaching is not required any more, since the assembly plugin now simply replaces the main artifact
-        //mavenProject.getAttachedArtifacts().forEach(a -> mojo.attachArtifact(a.getFile(), a.getType(), a.getClassifier()));
+        val artifact = mavenProject.getArtifact();
+        mojo.attachArtifact(artifact.getFile(), artifact.getType(), getName());
     }
 
     @Override

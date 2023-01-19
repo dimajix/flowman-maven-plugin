@@ -56,7 +56,7 @@ public class AssembleDist extends Task {
             ),
             goal("single"),
             configuration(
-                element(name("attach"), "false"),
+                element(name("attach"), "true"),
                 element(name("appendAssemblyId"), "false"),
                 element(name("tarLongFileMode"), "posix"),
                 element(name("finalName"), finalName),
