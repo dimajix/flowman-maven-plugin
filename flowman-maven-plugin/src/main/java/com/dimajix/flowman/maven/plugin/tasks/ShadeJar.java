@@ -90,6 +90,7 @@ public class ShadeJar extends Task {
                         element(name("artifact"), "*:*"),
                         element(name("excludes"),
                             element(name("exclude"), "META-INF/MANIFEST.MF"),
+                            element(name("exclude"), "META-INF/DEPENDENCIES"),
                             element(name("exclude"), "META-INF/*.SF"),
                             element(name("exclude"), "META-INF/*.DAS"),
                             element(name("exclude"), "META-INF/*.RSA")
