@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 Kaya Kupferschmidt
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dimajix.flowman.maven.aws;
 
 import java.io.File;
@@ -6,6 +22,7 @@ import java.net.URI;
 import java.util.Arrays;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import lombok.val;
@@ -22,7 +39,7 @@ public class S3FileSystem implements FileSystem {
 
     @Override
     public void put(URI target, File source) throws IOException {
-        val s3Client = new AmazonS3Client();
+        val s3Client = AmazonS3ClientBuilder.defaultClient();
 
         val bucket = getBucket(target);
         val path = getPath(target);
@@ -32,7 +49,7 @@ public class S3FileSystem implements FileSystem {
 
     @Override
     public void putAll(URI target, File sources) throws IOException {
-        val s3Client = new AmazonS3Client();
+        val s3Client = AmazonS3ClientBuilder.defaultClient();
 
         val tm = TransferManagerBuilder.standard().withS3Client(s3Client).build();
 
@@ -48,7 +65,7 @@ public class S3FileSystem implements FileSystem {
 
     @Override
     public void delete(URI target, boolean recursive) throws IOException {
-        val s3Client = new AmazonS3Client();
+        val s3Client = AmazonS3ClientBuilder.defaultClient();
 
         val bucket = getBucket(target);
         val path = getPath(target);

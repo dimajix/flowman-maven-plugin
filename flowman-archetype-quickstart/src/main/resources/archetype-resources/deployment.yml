@@ -1,6 +1,7 @@
 flowman:
   version: @flowman.version@
   plugins:
+    - flowman-avro
     - flowman-aws
     - flowman-mariadb
     - flowman-mysql
@@ -11,12 +12,9 @@ projects:
   - flow
 
 
-deployments:
+packages:
   distd:
     kind: dist
-    #installPath: s3://
 
   jard:
     kind: fatjar
-    #applicationPath: s3://
-    #projectPath: s3://
