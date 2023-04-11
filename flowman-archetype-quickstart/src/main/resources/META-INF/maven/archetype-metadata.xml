@@ -12,11 +12,11 @@
             <directory>conf</directory>
             <encoding>UTF-8</encoding>
         </fileSet>
-        <fileSet filtered="false">
+        <fileSet filtered="true">
             <directory></directory>
             <encoding>UTF-8</encoding>
             <includes>
-                <include>assembly.xml</include>
+                <include>deployment.xml</include>
                 <include>README.md</include>
             </includes>
         </fileSet>
