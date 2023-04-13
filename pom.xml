@@ -55,7 +55,7 @@
     </distributionManagement>
 
     <properties>
-        <flowman.version>1.0.0-SNAPSHOT</flowman.version>
+        <flowman.version>0.30.0-oss-spark3.3-hadoop3.3</flowman.version>
         <jackson.version>2.14.2</jackson.version>
         <maven.version>3.8.8</maven.version>
 
@@ -114,6 +114,19 @@
                 <inherited>true</inherited>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <inherited>true</inherited>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -256,6 +269,11 @@
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.5.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

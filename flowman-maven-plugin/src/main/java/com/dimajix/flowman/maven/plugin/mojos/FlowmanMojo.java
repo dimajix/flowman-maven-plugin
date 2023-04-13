@@ -62,10 +62,6 @@ import com.dimajix.flowman.maven.plugin.model.ObjectMapper;
 abstract public class FlowmanMojo extends AbstractMojo {
     /**
      * The project currently being build.
-     *
-     * @parameter expression="${project}"
-     * @required
-     * @readonly
      */
     @Getter
     @Parameter( defaultValue = "${project}", readonly = true, required = true )
@@ -73,10 +69,6 @@ abstract public class FlowmanMojo extends AbstractMojo {
 
     /**
      * The current Maven session.
-     *
-     * @parameter expression="${session}"
-     * @required
-     * @readonly
      */
     @Getter
     @Parameter( defaultValue = "${session}", readonly = true, required = true )
@@ -84,9 +76,6 @@ abstract public class FlowmanMojo extends AbstractMojo {
 
     /**
      * The Maven BuildPluginManager component.
-     *
-     * @component
-     * @required
      */
     @Getter
     @Component
