@@ -10,24 +10,35 @@
 
     <name>${artifactId}</name>
 
+    <properties>
+        <encoding>UTF-8</encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>com.dimajix.flowman.maven</groupId>
                 <artifactId>flowman-maven-plugin</artifactId>
-                <version>@project.version@</version>
+                <version>#project.version#</version>
                 <extensions>true</extensions>
                 <configuration>
                     <deploymentDescriptor>deployment.yml</deploymentDescriptor>
                 </configuration>
 
-                <!-- Additional plugin dependencies for specific deployment targets -->
+                <!-- Additional optional plugin dependencies for specific deployment targets -->
                 <dependencies>
                     <!-- Support for deploying to S3 storage -->
                     <dependency>
                         <groupId>com.dimajix.flowman.maven</groupId>
                         <artifactId>flowman-provider-aws</artifactId>
                         <version>0.1.0-SNAPSHOT</version>
+                    </dependency>
+                    <!-- Support for deploying to Azure Blob Storage -->
+                    <dependency>
+                        <groupId>com.dimajix.flowman.maven</groupId>
+                        <artifactId>flowman-provider-azure</artifactId>
+                        <version>0.1.0</version>
                     </dependency>
                 </dependencies>
             </plugin>

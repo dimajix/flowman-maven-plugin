@@ -16,9 +16,15 @@
             <directory></directory>
             <encoding>UTF-8</encoding>
             <includes>
-                <include>deployment.xml</include>
+                <include>deployment.yml</include>
                 <include>README.md</include>
             </includes>
         </fileSet>
     </fileSets>
+
+    <requiredProperties>
+        <requiredProperty key="flowmanVersion">
+            <defaultValue>#flowman.version#</defaultValue>
+        </requiredProperty>
+    </requiredProperties>
 </archetype-descriptor>

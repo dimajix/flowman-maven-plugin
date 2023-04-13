@@ -44,7 +44,7 @@ public class ShadeJar extends Task {
         // Set and resolve dependencies
         resolveDependencies();
 
-        // Remove "provided" depdencies
+        // Remove "provided" dependencies
         val newDeps = mavenProject.getArtifacts().stream()
             .filter(a -> !a.getScope().equals("provided"))
             .collect(Collectors.toSet());
@@ -89,6 +89,7 @@ public class ShadeJar extends Task {
                     element(name("filter"),
                         element(name("artifact"), "*:*"),
                         element(name("excludes"),
+                            element(name("exclude"), "META-INF/versions/**"),
                             element(name("exclude"), "META-INF/MANIFEST.MF"),
                             element(name("exclude"), "META-INF/DEPENDENCIES"),
                             element(name("exclude"), "META-INF/*.SF"),

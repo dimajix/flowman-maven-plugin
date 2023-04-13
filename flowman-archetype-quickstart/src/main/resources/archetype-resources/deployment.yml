@@ -1,10 +1,28 @@
 flowman:
-  version: @flowman.version@
+  # Specify the Flowman version to use
+  version: ${flowmanVersion}
+  # Optional: Specify the full artifact to use
+  distribution: com.dimajix.flowman:flowman-dist:bin:${flowmanVersion}
+  # Optional: Specify plugins
   plugins:
     - flowman-avro
     - flowman-aws
     - flowman-mariadb
     - flowman-mysql
+    # Other possible notations are groupId:artifactId[[[:classifier]:type]:version], i.e.
+    #- com.dimajix.flowman:flowman-plugin-aws
+    #- com.dimajix.flowman:flowman-plugin-aws:${flowmanVersion}
+    #- com.dimajix.flowman:flowman-plugin-aws:jar:${flowmanVersion}
+    #- groupId:artifactId
+    #- groupId:artifactId:version
+    #- groupId:artifactId:type:version
+    #- groupId:artifactId:type:classifier:version
+  # Optional: Specify Flowman config settings, which will be stored in the default-namespace.yml
+  config:
+    - flowman.execution.mapping.parallelism=4
+  # Optional: Specify Flowman environment variables, which will be stored in the default-namespace.yml
+  environment:
+    - src_dir=s3a://dimajix-training/data/weather
 
 
 # List of subdirectories containing Flowman projects
@@ -15,6 +33,12 @@ projects:
 packages:
   distd:
     kind: dist
+    # Optional: Modify global Flowman settings, which will be stored in the default-namespace.yml
+    flowman:
+      config:
+        - flowman.execution.mapping.parallelism=6
+      environment:
+        - src_dir=s3a://dimajix-training/data/weather
 
   jard:
     kind: fatjar

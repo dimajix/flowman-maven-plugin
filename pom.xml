@@ -37,7 +37,7 @@
     <scm>
         <connection>scm:git:git://github.com/dimajix/flowman-maven.git</connection>
         <developerConnection>scm:git:ssh://github.com/dimajix/flowman-maven.git</developerConnection>
-        <url>https://github.com/dimajix/flowman-maven/tree/master</url>
+        <url>https://github.com/dimajix/flowman-maven/tree/main</url>
     </scm>
     <issueManagement>
         <url>https://github.com/dimajix/flowman-maven/issues</url>
@@ -55,7 +55,7 @@
     </distributionManagement>
 
     <properties>
-        <flowman.version>0.30.0-oss-spark3.3-hadoop3.3</flowman.version>
+        <flowman.version>1.0.0-SNAPSHOT</flowman.version>
         <jackson.version>2.14.2</jackson.version>
         <maven.version>3.8.8</maven.version>
 
@@ -95,6 +95,7 @@
         <module>flowman-provider-aws</module>
         <module>flowman-provider-azure</module>
         <module>flowman-archetype-quickstart</module>
+        <module>flowman-archetype-assembly</module>
     </modules>
 
     <build>
@@ -127,27 +128,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.amashchenko.maven.plugin</groupId>
-                <artifactId>gitflow-maven-plugin</artifactId>
-                <version>1.16.0</version>
-                <configuration>
-                    <installProject>false</installProject>
-                    <verbose>true</verbose>
-                    <versionDigitToIncrement>2</versionDigitToIncrement>
-                    <pushRemote>false</pushRemote>
-                    <gitFlowConfig>
-                        <productionBranch>master</productionBranch>
-                        <developmentBranch>develop</developmentBranch>
-                        <featureBranchPrefix>feature/</featureBranchPrefix>
-                        <releaseBranchPrefix>release/</releaseBranchPrefix>
-                        <hotfixBranchPrefix>hotfix/</hotfixBranchPrefix>
-                        <supportBranchPrefix>support/</supportBranchPrefix>
-                        <versionTagPrefix></versionTagPrefix>
-                        <origin>github</origin>
-                    </gitFlowConfig>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

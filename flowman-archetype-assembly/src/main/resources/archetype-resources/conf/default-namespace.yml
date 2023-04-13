@@ -49,7 +49,6 @@ config:
   - spark.executor.memory=$System.getenv('SPARK_EXECUTOR_MEMORY', '16g')
 
 plugins:
-  - flowman-avro
   - flowman-aws
   - flowman-mariadb
   - flowman-mysql
