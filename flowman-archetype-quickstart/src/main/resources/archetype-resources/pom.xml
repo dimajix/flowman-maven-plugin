@@ -32,13 +32,13 @@
                     <dependency>
                         <groupId>com.dimajix.flowman.maven</groupId>
                         <artifactId>flowman-provider-aws</artifactId>
-                        <version>0.1.0-SNAPSHOT</version>
+                        <version#project.version#</version>
                     </dependency>
                     <!-- Support for deploying to Azure Blob Storage -->
                     <dependency>
                         <groupId>com.dimajix.flowman.maven</groupId>
                         <artifactId>flowman-provider-azure</artifactId>
-                        <version>0.1.0</version>
+                        <version>#project.version#</version>
                     </dependency>
                 </dependencies>
             </plugin>

@@ -47,6 +47,8 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectDependenciesResolver;
 import org.apache.maven.shared.transfer.artifact.resolve.ArtifactResolver;
 import org.apache.maven.shared.transfer.dependencies.resolve.DependencyResolver;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.impl.ArtifactDescriptorReader;
 import org.eclipse.aether.resolution.ArtifactDescriptorException;
 import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
@@ -240,9 +242,13 @@ abstract public class FlowmanMojo extends AbstractMojo {
         val parent = new org.eclipse.aether.artifact.DefaultArtifact(pom.getGroupId(), pom.getArtifactId(), pom.getType(), pom.getVersion());
         request.setArtifact(parent);
 
+        // Make sure user defined Maven properties are used when importing a POM
+        val repositorySystemSession = new DefaultRepositorySystemSession(getMavenSession().getRepositorySession());
+        repositorySystemSession.setUserProperties(mavenProject.getProperties());
+
         ArtifactDescriptorResult result;
         try {
-            result = getArtifactDescriptorReader().readArtifactDescriptor(getMavenSession().getRepositorySession(), request);
+            result = getArtifactDescriptorReader().readArtifactDescriptor(repositorySystemSession, request);
         } catch (ArtifactDescriptorException e) {
             throw new MojoFailureException(e);
         }

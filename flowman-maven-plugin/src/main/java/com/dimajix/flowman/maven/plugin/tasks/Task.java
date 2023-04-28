@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import lombok.val;
 import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -30,7 +31,6 @@ public abstract class Task {
     protected MavenSession mavenSession;
     protected BuildPluginManager pluginManager;
     protected ProjectDependenciesResolver dependenciesResolver;
-
     protected File buildDirectory;
 
 
@@ -48,12 +48,12 @@ public abstract class Task {
     }
 
     protected DependencyResolutionResult resolveDependencies() throws MojoExecutionException {
-        RepositorySystemSession session = mavenSession.getRepositorySession();
+        val repositorySystemSession = mavenSession.getRepositorySession();
         DependencyResolutionResult resolutionResult;
 
         try
         {
-            DefaultDependencyResolutionRequest resolution = new DefaultDependencyResolutionRequest( mavenProject, session );
+            DefaultDependencyResolutionRequest resolution = new DefaultDependencyResolutionRequest( mavenProject, repositorySystemSession );
             resolutionResult = dependenciesResolver.resolve( resolution );
         }
         catch ( DependencyResolutionException e )
@@ -68,7 +68,7 @@ public abstract class Task {
                 Collections.singletonList( mavenProject.getArtifact().getId() ), null );
 
             // Maven 2.x quirk: an artifact always points at the local repo, regardless whether resolved or not
-            LocalRepositoryManager lrm = session.getLocalRepositoryManager();
+            LocalRepositoryManager lrm = repositorySystemSession.getLocalRepositoryManager();
             for ( Artifact artifact : artifacts )
             {
                 if ( !artifact.isResolved() )
