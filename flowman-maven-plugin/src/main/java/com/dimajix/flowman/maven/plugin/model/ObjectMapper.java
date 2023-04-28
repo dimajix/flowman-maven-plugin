@@ -32,10 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.val;
-import lombok.var;
 import org.codehaus.plexus.interpolation.fixed.FixedStringSearchInterpolator;
-
-import com.dimajix.flowman.maven.plugin.interpolation.StringInterpolator;
 
 
 public class ObjectMapper {
@@ -77,7 +74,7 @@ public class ObjectMapper {
         if (node.isObject()) {
             val obj = (ObjectNode)node;
             val newChildren = new HashMap<String,JsonNode>();
-            for (var it = obj.fields(); it.hasNext(); ) {
+            for (Iterator<Map.Entry<String, JsonNode>> it = obj.fields(); it.hasNext(); ) {
                 val namedChild = it.next();
                 val newChild = applyThings(namedChild.getValue(), intp);
                 newChildren.put(namedChild.getKey(), newChild);
@@ -93,7 +90,7 @@ public class ObjectMapper {
         else if (node.isArray()) {
             val ary = (ArrayNode)node;
             val newElements = new LinkedList<JsonNode>();
-            for (var it = ary.elements(); it.hasNext(); ) {
+            for (Iterator<JsonNode> it = ary.elements(); it.hasNext(); ) {
                 val elem = it.next();
                 val newElement = applyThings(elem, intp);
                 newElements.add(newElement);

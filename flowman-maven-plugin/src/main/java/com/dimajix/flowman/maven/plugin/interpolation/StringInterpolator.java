@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Properties;
 
 import lombok.val;
-import lombok.var;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.interpolation.fixed.FixedStringSearchInterpolator;
@@ -61,7 +60,7 @@ public class StringInterpolator {
     }
 
     private static FixedStringSearchInterpolator createCommandLinePropertiesInterpolator(final MavenSession session) {
-        var commandLineProperties = System.getProperties();
+        Properties commandLineProperties = System.getProperties();
 
         if (session != null) {
             commandLineProperties = new Properties();

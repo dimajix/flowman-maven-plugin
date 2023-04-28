@@ -26,6 +26,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import com.dimajix.flowman.maven.plugin.model.Deployment;
+
 
 @Mojo(name = "deploy", threadSafe = true)
 public class DeployMojo extends FlowmanMojo {
@@ -36,7 +38,7 @@ public class DeployMojo extends FlowmanMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         val deployments = StringUtils.isEmpty(deployment) ? getDeployments() : Collections.singletonList(getDeployment(deployment));
 
-        for (var deployment : deployments) {
+        for (Deployment deployment : deployments) {
             getLog().info("");
             getLog().info("-- Deploying deployment '" + deployment.getName() + "'");
 

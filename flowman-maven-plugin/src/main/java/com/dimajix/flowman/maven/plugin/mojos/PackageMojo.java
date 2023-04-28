@@ -19,13 +19,14 @@ package com.dimajix.flowman.maven.plugin.mojos;
 import java.util.Collections;
 
 import lombok.val;
-import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+
+import com.dimajix.flowman.maven.plugin.model.Package;
 
 
 @Mojo( name = "package", threadSafe = true, defaultPhase = LifecyclePhase.PACKAGE)
@@ -37,7 +38,7 @@ public class PackageMojo extends FlowmanMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         val packages = StringUtils.isEmpty(pkg) ? getPackages() : Collections.singletonList(getPackage(pkg));
 
-        for (var pkg : packages) {
+        for (Package pkg : packages) {
             getLog().info("");
             getLog().info("-- Packaging package '" + pkg.getName() + "'");
 

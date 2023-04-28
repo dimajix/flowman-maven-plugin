@@ -28,6 +28,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import com.dimajix.flowman.maven.plugin.model.Package;
+
 
 @Mojo( name = "push", threadSafe = true, defaultPhase = LifecyclePhase.DEPLOY)
 public class PushMojo extends FlowmanMojo {
@@ -38,7 +40,7 @@ public class PushMojo extends FlowmanMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         val packages = StringUtils.isEmpty(pkg) ? getPackages() : Collections.singletonList(getPackage(pkg));
 
-        for (var pkg : packages) {
+        for (Package pkg : packages) {
             getLog().info("");
             getLog().info("-- Pushing package '" + pkg.getName() + "'");
 

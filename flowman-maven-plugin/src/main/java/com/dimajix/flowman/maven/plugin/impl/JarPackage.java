@@ -72,7 +72,7 @@ public class JarPackage extends AbstractPackage {
         val ns = new File(outputDirectory, "conf/default-namespace.yml");
         try {
             val mapper = new ObjectMapper(newYAMLFactory());
-            var objectTree = mapper.getNodeFactory().objectNode();
+            ObjectNode objectTree = mapper.getNodeFactory().objectNode();
 
             // Parse existing file (if it exists)
             if (ns.exists() && ns.isFile()) {
@@ -109,7 +109,7 @@ public class JarPackage extends AbstractPackage {
 
         // Execute Tests
         val run = new RunArtifacts(mojo, mavenProject, null, confDirectory, getEffectiveExecutionSettings());
-        for (var flow : projectDirectories) {
+        for (File flow : projectDirectories) {
             val projectDirectory = new File(outputDirectory, flow.getPath());
             run.runTests(projectDirectory);
         }

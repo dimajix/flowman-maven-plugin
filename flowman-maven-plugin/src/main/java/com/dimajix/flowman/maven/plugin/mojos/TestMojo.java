@@ -28,6 +28,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import com.dimajix.flowman.maven.plugin.model.Package;
+
 
 @Mojo( name = "test", threadSafe = true, defaultPhase = LifecyclePhase.TEST)
 public class TestMojo extends FlowmanMojo {
@@ -43,7 +45,7 @@ public class TestMojo extends FlowmanMojo {
         if (!skipTests) {
             val packages = StringUtils.isEmpty(pkg) ? getPackages() : Collections.singletonList(getPackage(pkg));
 
-            for (var pkg : packages) {
+            for (Package pkg : packages) {
                 getLog().info("");
 
                 if (skipTests || pkg.isSkipTests()) {

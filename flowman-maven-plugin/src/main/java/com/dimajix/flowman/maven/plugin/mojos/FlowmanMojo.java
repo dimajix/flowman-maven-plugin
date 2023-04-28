@@ -54,9 +54,9 @@ import org.eclipse.aether.resolution.ArtifactDescriptorResult;
 
 import com.dimajix.flowman.maven.plugin.interpolation.StringInterpolator;
 import com.dimajix.flowman.maven.plugin.model.Deployment;
-import com.dimajix.flowman.maven.plugin.model.Package;
 import com.dimajix.flowman.maven.plugin.model.Descriptor;
 import com.dimajix.flowman.maven.plugin.model.ObjectMapper;
+import com.dimajix.flowman.maven.plugin.model.Package;
 
 
 abstract public class FlowmanMojo extends AbstractMojo {
@@ -121,10 +121,10 @@ abstract public class FlowmanMojo extends AbstractMojo {
             try {
                 val interpolator = StringInterpolator.createInterpolator(mavenSession, mavenProject);
                 cachedDescriptor = ObjectMapper.read(deploymentDescriptor, Descriptor.class, interpolator);
-                for (var pkg : cachedDescriptor.getPackages()) {
+                for (Package pkg : cachedDescriptor.getPackages()) {
                     pkg.init(this);
                 }
-                for (var deployment : cachedDescriptor.getDeployments()) {
+                for (Deployment deployment : cachedDescriptor.getDeployments()) {
                     deployment.init(this);
                 }
             }
@@ -197,7 +197,8 @@ abstract public class FlowmanMojo extends AbstractMojo {
         build.setDirectory(new File(buildDirectory, pkg.getName()).toString());
         build.setOutputDirectory(new File(new File(buildDirectory, pkg.getName()), "resources").toString());
 
-        val mavenProject = new MavenProject(mojoProject.getModel().clone());
+        val model = mojoProject.getModel().clone();
+        val mavenProject = new MavenProject(model);
         mavenProject.setOriginalModel(mojoProject.getModel());
         mavenProject.setBuild(build);
         mavenProject.setFile(mojoProject.getFile());
@@ -205,6 +206,14 @@ abstract public class FlowmanMojo extends AbstractMojo {
         mavenProject.setRemoteArtifactRepositories(mojoProject.getRemoteArtifactRepositories());
         mavenProject.setPluginArtifactRepositories(mojoProject.getPluginArtifactRepositories());
         mavenProject.setDistributionManagement(mojoProject.getDistributionManagement());
+
+        val buildSettings = pkg.getEffectiveBuildSettings();
+        for (String prop : buildSettings.getProperties()) {
+            val parts = prop.split("=", 2);
+            if (parts.length == 2) {
+                model.addProperty(parts[0], parts[1]);
+            }
+        }
 
         val flowmanSettings = pkg.getEffectiveFlowmanSettings();
         val parent0 = flowmanSettings.resolveParent();
@@ -225,9 +234,12 @@ abstract public class FlowmanMojo extends AbstractMojo {
     }
 
     private void importDependencyManagement(MavenProject mavenProject, Artifact pom) throws MojoFailureException {
+        getLog().debug("Importing " + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getType() + ":" + pom.getVersion());
+
         val request = new ArtifactDescriptorRequest();
         val parent = new org.eclipse.aether.artifact.DefaultArtifact(pom.getGroupId(), pom.getArtifactId(), pom.getType(), pom.getVersion());
         request.setArtifact(parent);
+
         ArtifactDescriptorResult result;
         try {
             result = getArtifactDescriptorReader().readArtifactDescriptor(getMavenSession().getRepositorySession(), request);
@@ -239,6 +251,7 @@ abstract public class FlowmanMojo extends AbstractMojo {
         result.getManagedDependencies().forEach(dep0 -> {
             val dep = new Dependency();
             val artifact = dep0.getArtifact();
+            getLog().debug("Adding dependency management: " + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion());
             dep.setGroupId(artifact.getGroupId());
             dep.setArtifactId(artifact.getArtifactId());
             dep.setClassifier(StringUtils.isNotEmpty(artifact.getClassifier()) ? artifact.getClassifier() : null);

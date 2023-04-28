@@ -137,7 +137,7 @@ public class DistPackage extends AbstractPackage {
 
         // 3. Execute Tests
         val run = new RunArtifacts(mojo, mavenProject, homeDirectory, confDirectory, getEffectiveExecutionSettings());
-        for (var flow : projectDirectories) {
+        for (File flow : projectDirectories) {
             val projectDirectory = new File(outputDirectory, flow.getPath());
             run.runTests(projectDirectory);
         }
