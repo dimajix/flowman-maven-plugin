@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.dimajix.flowman.maven</groupId>
         <artifactId>flowman-maven-root</artifactId>
-        <version>0.2.1</version>
+        <version>0.3.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
