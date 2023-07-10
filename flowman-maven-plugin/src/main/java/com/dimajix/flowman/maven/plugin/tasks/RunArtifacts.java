@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 import lombok.val;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -38,6 +39,23 @@ public class RunArtifacts extends Task {
     private final File homeDirectory;
     private final File confDirectory;
     private final ExecutionSettings executionSettings;
+    private static final String[] extraJavaArgs = {
+        "-XX:+IgnoreUnrecognizedVMOptions",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.net=ALL-UNNAMED",
+        "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+        "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+        "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED",
+        "--add-opens=java.base/sun.security.action=ALL-UNNAMED",
+        "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
+        "-Djdk.reflect.useDirectMethodHandle=false"
+    };
 
 
     public RunArtifacts(FlowmanMojo mojo, MavenProject mavenProject, ExecutionSettings executionSettings) throws MojoFailureException {
@@ -80,6 +98,7 @@ public class RunArtifacts extends Task {
                 mainClass,
                 "-f", projectDirectory.toString()
             );
+        allArgs.addAll(Arrays.stream(extraJavaArgs).collect(Collectors.toList()));
         allArgs.addAll(executionSettings.getJavaOptions());
         allArgs.addAll(args0);
         allArgs.addAll(executionSettings.getFlowmanOptions());
