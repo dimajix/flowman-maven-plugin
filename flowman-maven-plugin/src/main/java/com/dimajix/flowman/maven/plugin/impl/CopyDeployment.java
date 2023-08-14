@@ -43,7 +43,7 @@ public class CopyDeployment extends AbstractDeployment {
         try {
             pull.copy(myArtifact, new URI(targetLocation));
         } catch (URISyntaxException ex) {
-            throw new MojoExecutionException(ex);
+            throw new MojoExecutionException("Error copying artifact '" + myArtifact.getId() + "' to '" + targetLocation + "'", ex);
         }
     }
 }

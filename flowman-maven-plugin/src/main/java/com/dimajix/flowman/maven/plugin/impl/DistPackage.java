@@ -123,7 +123,7 @@ public class DistPackage extends AbstractPackage {
             mapper.writer().writeValue(ns, objectTree);
         }
         catch(IOException ex) {
-            throw new MojoFailureException(ex);
+            throw new MojoFailureException("Error processing '"+ ns + "'", ex);
         }
     }
 
@@ -182,7 +182,7 @@ public class DistPackage extends AbstractPackage {
                 .forEach(plugins::add);
         }
         catch(IOException ex) {
-            throw new MojoFailureException(ex);
+            throw new MojoFailureException("Error parsing '" + ns + "'", ex);
         }
 
 

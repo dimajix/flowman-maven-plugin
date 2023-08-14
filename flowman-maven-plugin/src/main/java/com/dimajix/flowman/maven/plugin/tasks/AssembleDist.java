@@ -44,8 +44,8 @@ public class AssembleDist extends Task {
         XmlMapper mapper = new XmlMapper(Jackson.newXMLFactory());
         try {
             mapper.writer().writeValue(assemblyDescriptorFile, assemblyDescriptor);
-        } catch (IOException e) {
-            throw new MojoExecutionException(e);
+        } catch (IOException ex) {
+            throw new MojoExecutionException("Error writing assembly descriptor '" + assemblyDescriptorFile + "'", ex);
         }
 
         executeMojo(

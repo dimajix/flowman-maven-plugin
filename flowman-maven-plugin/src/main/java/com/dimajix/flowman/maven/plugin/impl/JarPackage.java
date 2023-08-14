@@ -99,7 +99,7 @@ public class JarPackage extends AbstractPackage {
             mapper.writer().writeValue(ns, objectTree);
         }
         catch(IOException ex) {
-            throw new MojoFailureException(ex);
+            throw new MojoFailureException("Error processing '" + ns + "'", ex);
         }
     }
 

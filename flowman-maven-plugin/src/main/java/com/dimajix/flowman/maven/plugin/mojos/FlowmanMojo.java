@@ -131,7 +131,7 @@ abstract public class FlowmanMojo extends AbstractMojo {
                 }
             }
             catch(IOException ex) {
-                throw new MojoFailureException(ex);
+                throw new MojoFailureException("Error reading " + deploymentDescriptor + " descriptor", ex);
             }
         }
         return cachedDescriptor;
@@ -250,7 +250,7 @@ abstract public class FlowmanMojo extends AbstractMojo {
         try {
             result = getArtifactDescriptorReader().readArtifactDescriptor(repositorySystemSession, request);
         } catch (ArtifactDescriptorException e) {
-            throw new MojoFailureException(e);
+            throw new MojoFailureException("Error reading artifact descriptor '" + request + "'", e);
         }
 
         val depMgmt = new DependencyManagement();

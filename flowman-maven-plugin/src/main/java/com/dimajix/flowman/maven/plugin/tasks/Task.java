@@ -58,7 +58,7 @@ public abstract class Task {
         }
         catch ( DependencyResolutionException e )
         {
-            throw new MojoExecutionException(e);
+            throw new MojoExecutionException("Error resolving dependencies", e);
         }
 
         Set<Artifact> artifacts = new LinkedHashSet<>();

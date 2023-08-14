@@ -69,8 +69,8 @@ public class ResolveArtifact extends Task {
             else {
                 return artifact;
             }
-        } catch (ArtifactResolverException e) {
-            throw new MojoExecutionException(e);
+        } catch (ArtifactResolverException ex) {
+            throw new MojoExecutionException("Error resolving artifact '" + artifact.getId() + "'", ex);
         }
     }
 
@@ -86,10 +86,10 @@ public class ResolveArtifact extends Task {
             fs.put(target, source);
         }
         catch(URISyntaxException ex) {
-            throw new MojoExecutionException(ex);
+            throw new MojoExecutionException("Error copying artifact '" + artifact.getId() + "' to '" + targetLocation + "'", ex);
         }
         catch(IOException ex) {
-            throw new MojoExecutionException(ex);
+            throw new MojoExecutionException("Error copying artifact '" + artifact.getId() + "' to '" + targetLocation + "'", ex);
         }
     }
 }
