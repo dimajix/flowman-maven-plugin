@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.dimajix.flowman.maven</groupId>
         <artifactId>flowman-maven-root</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
