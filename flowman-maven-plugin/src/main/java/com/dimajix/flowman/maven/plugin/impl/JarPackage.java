@@ -86,6 +86,9 @@ public class JarPackage extends AbstractPackage {
                     objectTree.without("plugins");
                 }
             }
+            else {
+                ns.getParentFile().mkdirs();
+            }
 
             // Add config & env
             val configValues = flowmanSettings.getConfig();

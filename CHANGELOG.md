@@ -1,3 +1,8 @@
+# Version 0.4.0
+
+* Fix build when no default-namespace.yml is provided
+
+
 # Version 0.3.0 - 2023-7-10
 
 * Fix broken 'quickstart' archetype

@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -98,6 +99,9 @@ public class DistPackage extends AbstractPackage {
                     if (tree.isObject())
                         objectTree = (ObjectNode)tree;
                 }
+            }
+            else {
+                ns.getParentFile().mkdirs();
             }
             if (objectTree == null) {
                 objectTree = mapper.getNodeFactory().objectNode();
